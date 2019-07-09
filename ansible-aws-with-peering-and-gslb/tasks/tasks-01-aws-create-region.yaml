@@ -1,0 +1,311 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+- name: CREATE VPC
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ aws_region.region }}"
+    state: present
+    tags:
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+  register: create_vpc
+  until: create_vpc is not failed
+  retries: 5
+
+
+- name: "SET FACT: VPC ID"
+  set_fact:
+    vpc_id: "{{ create_vpc.vpc.id }}"
+
+
+- name: CREATE VPC SUBNETS
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    tags:
+      name: "{{ item.name }}"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    state: present
+  with_items: "{{ vpc_subnets }}"
+  register: create_vpc_subnets
+
+
+- name: "COLLECT SUBNET FACTS"
+  ec2_vpc_subnet_facts:
+    filters:
+      vpc-id: "{{ vpc_id }}"
+  register: vpc_subnet_facts
+
+
+- name: "SET FACT: VPC SUBNET IDS"
+  set_fact:
+    vpc_subnet_ids: "{{ vpc_subnet_ids | default({}) | combine({ (item.tags.name | default('default')): item.id }) }}"
+  loop: "{{ vpc_subnet_facts.subnets }}"
+
+
+- name: CREATE INTERNET GATEWAY
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_id }}"
+    state: present
+    tags:
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+  register: create_gateway
+
+
+- name: "SET FACT: GATEWAY ID"
+  set_fact:
+    vpc_gateway_id: "{{ create_gateway.gateway_id }}"
+
+
+# public route table that routes through the internet gateway -- attach it to our three public subnets
+- name: CREATE ROUTE TABLE FOR MGMT SUBNETS
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_id }}"
+    state: present
+    tags:
+      name: "Arch - Ansible created route table"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    subnets:
+      - "{{ vpc_subnet_ids.mgmt_a }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ vpc_gateway_id }}"
+  register: create_route
+
+
+
+- name: CREATE LOCAL VPC PEERING CONNECTION
+  ec2_vpc_peer:
+    region: "{{ aws_region.region }}"
+    vpc_id: "{{ vpc_id }}"
+    peer_vpc_id: "{{ aws_region.peer_vpc_id }}"
+    state: present
+    tags:
+      Name: Peering connection for Ansible Demo VPC to ECS VPC
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+  register: create_vpc_peer
+  until: create_vpc_peer is not failed
+  retries: 5
+  ignore_errors: True
+
+- name: ACCEPT LOCAL VPC PEERING REQUEST
+  ec2_vpc_peer:
+    region: "{{ aws_region.region }}"
+    peering_id: "{{ create_vpc_peer.peering_id }}"
+    state: accept
+  register: action_peer
+  until: action_peer is not failed
+  retries: 5
+  ignore_errors: True
+
+- name: UPDATE ROUTE TABLE FOR NEW VPC TO CONTAINER PEER
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_id }}"
+    route_table_id: "{{ create_route.route_table.id }}"
+    lookup: id
+    state: present
+    tags:
+      name: "Arch - Ansible created route table"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    subnets:
+      - "{{ vpc_subnet_ids.mgmt_a }}"
+      - "{{ vpc_subnet_ids.traffic_a }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ vpc_gateway_id }}"
+      - dest: "{{ peer_vpc_cidr }}"
+        vpc_peering_connection_id: "{{ create_vpc_peer.peering_id }}"
+
+- name: CREATE ROUTE TABLE FOR CONTAINER VPC TO NEW PEER
+  ec2_vpc_route_table:
+    vpc_id: "{{ aws_region.peer_vpc_id }}"
+    route_table_id: "{{ aws_region.peer_route_table_id }}"
+    lookup: id
+    state: present
+    tags:
+      name: "Arch - Ansible created route table for traffic subnet"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    subnets:
+      - 10.0.0.0/24
+      - 10.0.1.0/24 
+      - 10.0.2.0/24     
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ aws_region.peer_igw_id }}"
+      - dest: "{{ vpc_cidr }}"
+        vpc_peering_connection_id: "{{ create_vpc_peer.peering_id }}"
+
+
+- name: DEPLOY AWS CFT TO CREATE BIG-IP HA PAIR
+  cloudformation:
+    stack_name: "{{ stack_name }}"
+    state: present
+    region: "{{ aws_region.region }}"
+    disable_rollback: true
+    template_url: "https://s3.amazonaws.com/f5-cft/f5-existing-stack-same-az-cluster-payg-2nic-bigip.template"
+    template_parameters:
+      group:  "f5group"
+      declarationUrl:  "none"
+      Vpc: "{{ vpc_id }}"
+      managementSubnetAz1:  "{{ vpc_subnet_ids.mgmt_a }}"
+      subnet1Az1:  "{{ vpc_subnet_ids.traffic_a }}"
+      restrictedSrcAddress: "0.0.0.0/0"
+      restrictedSrcAddressApp: "0.0.0.0/0"
+      sshKey:  "{{ sshKey }}"
+      environment:  "Demo"
+      application:  "f5app"
+      customImageId:  "OPTIONAL"
+      imageName:  "Best25Mbps"
+      ntpServer:  "0.pool.ntp.org"
+      costcenter:  "SALES EMEA-UK 4261"
+      owner:  "{{ uk_se_name }}"
+      timezone:  "UTC"
+      instanceType:  "m5.xlarge"
+      allowUsageAnalytics:  "Yes"
+    tags:
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+  register: result 
+  until: result is not failed
+  retries: 5
+
+
+- name: GATHER FACTS FROM AWS CFT OUTPUT - NEED BIG-IP PUBLIC IPS 
+  cloudformation_facts:
+    stack_name: "{{ stack_name }}"
+    stack_resources: true
+  register: my_stack
+
+
+- name: WAIT FOR SSH ACCESS - CHECK EVERY 10 (MAX 600)
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    delay: 0
+    sleep: 10
+    connect_timeout: 5
+    timeout: 600
+    msg: "Failed to detect SSH port open"
+  loop:
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}"
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip2ManagementEipAddress }}"
+
+
+- name: CHECK FOR READY SIGNAL FILE - CHECK EVERY 10 (MAX 600)
+  bigip_command:
+    commands:
+      - "run /util bash -c 'test -f /tmp/f5-cloud-libs-signals/ADMIN_CREATED && echo ADMIN_CREATED'"
+    wait_for:
+      - result contains ADMIN_CREATED
+    interval: 10
+    retries: 60
+    provider:
+      server: "{{ item }}"
+      user: "{{ bigip_user }}"
+      password: "{{ bigip_pass }}"
+      transport: cli
+      ssh_keyfile: "{{ ssh_key_file_path }}"
+      validate_certs: no
+  register: ssh_output
+  delegate_to: localhost
+  loop:
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}"
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip2ManagementEipAddress }}"
+  until: ssh_output is not failed
+  retries: 5
+    
+
+- name: SSH TO BIG-IPS AND ENABLE PASSWORD AUTH
+  bigip_command:
+    commands:
+      - modify auth user "{{ bigip_user }}" password "{{ bigip_pass }}" 
+      - save sys config
+    wait_for:
+      - result[1] contains done
+    provider:
+      user: "{{ bigip_user }}"
+      password: "{{ bigip_pass }}"
+      server: "{{ item }}"
+      transport: cli
+      ssh_keyfile: "{{ ssh_key_file_path }}"
+      timeout: 60
+      validate_certs: no
+  register: ssh_output
+  delegate_to: localhost
+  loop:
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}"
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip2ManagementEipAddress }}"
+  until: ssh_output is not failed
+  retries: 5
+
+
+- name: WAIT FOR AS3 API (204)
+  uri:
+    url: "https://{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}/mgmt/shared/appsvcs/declare"
+    method: GET
+    user: "{{ bigip_user }}"
+    password: "{{ bigip_pass }}"
+    force_basic_auth: yes
+    status_code: 200, 204 
+    validate_certs: no
+  retries: 30
+  delay: 5
+  register: result
+  until: ('status' in result) and (result.status == 200 or result.status == 204)
+  changed_when: false
+
+
+- name: AS3 REST CALL TO BIG-IP USING JINJA2 TEMPLATE
+  uri:
+    url: "https://{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}/mgmt/shared/appsvcs/declare"
+    method: POST
+    force_basic_auth: yes
+    user: "{{ bigip_user }}"
+    password: "{{ bigip_pass }}"
+    body: "{{ lookup('template', './declarations/as3-declaration.j2', split_lines=False) }}"
+    body_format: json
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: create_vpc
+  until: create_vpc is not failed
+  retries: 5
+  delay: 30
+
+
+- name: OUTPUT HTTPS LINK FOR BIG-IP
+  debug:
+    msg: "You should now be able to login to the BIG-IP on https://{{ item }}"
+  loop:
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}"
+    - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip2ManagementEipAddress }}"
+
+
+- name: APPEND TO GSLB IP LIST
+  set_fact:
+    gslb_ips: "{{ gslb_ips }} + [ '{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1VipEipAddress }}' ] "
+    
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

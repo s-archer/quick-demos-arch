@@ -1,0 +1,75 @@
+---
+#------------------------------------------------------------------------------
+# Start Tasks
+#------------------------------------------------------------------------------
+
+
+  - name: DELETE ANSIBLE CFT DEPLOYMENT
+    cloudformation:
+      stack_name: "{{ stack_name }}"
+      state: absent
+      region: "{{ aws_region }}"
+      disable_rollback: true
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    ignore_errors: True
+
+
+  - name: GET VPC ID USING TAGS DEFINED DURING AUTOMATED BUILD
+    ec2_vpc_net_facts:
+      region: "{{ aws_region }}"
+      filters:
+        "tag:stack": "{{ stack_name }}"
+        "tag:UK-SE": "{{ uk_se_name }}"
+        "tag:automated": "{{ automation_tool }}"
+    register: vpc_facts
+    ignore_errors: True
+  
+
+  - name: OUTPUT VPC ID
+    debug:
+      msg: "Identified VPC: {{ vpc_facts.vpcs[0].vpc_id }}. This will be deleted."
+    ignore_errors: True
+
+
+  - name: DELETE INTERNET GATEWAY
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      state: absent
+    ignore_errors: True
+
+
+  - name: DELETE VPC SUBNETS
+    ec2_vpc_subnet:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ item.az }}"
+      state: absent
+    with_items: "{{ vpc_subnets }}"
+    ignore_errors: True
+
+
+  - name: DELETE ROUTE TABLE
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      state: absent
+    ignore_errors: True
+
+  - name: DELETE VPC
+    ec2_vpc_net:
+      name: "{{ vpc_name }}" 
+      state: absent
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ aws_region }}"
+    ignore_errors: True
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

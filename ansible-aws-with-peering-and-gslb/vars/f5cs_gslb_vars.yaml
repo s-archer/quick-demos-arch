@@ -1,0 +1,21 @@
+---
+#------------------------------------------------------------------------------
+# Variables used by both CREATE and DELETE Playbooks. 
+#------------------------------------------------------------------------------
+#
+# *** Important - Do not put credentials in this file. ***  
+#
+# See playbook section titled 'Load Variables from files' for details on how to
+# handle credentials.
+#
+# Note that you must change the following four variables to suit your deployment.
+# Finally, do not use spaces or unusual characters in the variable values!
+#
+
+gslb_zone: "archf5.uk"
+gslb_zone_a_record: "arcadia"
+gslb_service_name: "arch arcadia finance demo"
+gslb_service_name_short: "arch_arcadia_demo"
+
+#------------------------------------------------------------------------------
+...

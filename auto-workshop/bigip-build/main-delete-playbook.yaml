@@ -1,0 +1,67 @@
+---
+#------------------------------------------------------------------------------
+# Ansible Playbook to Delete Demo Environment
+#------------------------------------------------------------------------------
+- name: PROVISION VPC SUBNETS & F5 INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+
+#------------------------------------------------------------------------------
+# Load Variables from files 
+#------------------------------------------------------------------------------
+  
+  # You need to create a file named aws_creds.yaml (update path below) with the following variables:
+  #
+  #  ec2_access_key: "--your-key-here--"
+  #  ec2_secret_key: "--your-secret-here--"
+  #
+  vars_files:
+    - ../../../creds/aws_creds.yaml
+    - ./vars.yaml
+  
+#------------------------------------------------------------------------------
+# End variables
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Start Tasks
+#------------------------------------------------------------------------------
+
+  tasks:
+
+# Use/uncomment the loop control below to create single devices in multiple regions.
+#
+#  - include_tasks: aws-delete-tasks.yaml
+#    loop:
+#        - eu-west-1
+#        - eu-west-2
+#        - eu-central-1
+#        - us-east-1
+#        - us-east-2
+#        - us-west-2
+#        
+#    loop_control:
+#      loop_var: aws_region
+
+
+# Use/uncomment the loop control below to create single devices in same region.
+#
+  - include_tasks: aws-delete-tasks.yaml
+    loop:
+        - autowsStack1
+        - autowsStack2
+        - autowsStack3
+        - autowsStack4
+    loop_control:
+      loop_var: stack_name
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

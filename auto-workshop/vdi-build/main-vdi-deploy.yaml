@@ -1,0 +1,206 @@
+---
+#------------------------------------------------------------------------------
+# Playbook to CREATE AWS demo environment. 
+#------------------------------------------------------------------------------
+
+- name: PROVISION VPC SUBNETS & F5 INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+
+    
+
+#------------------------------------------------------------------------------
+# Load Variables from files 
+#------------------------------------------------------------------------------
+  
+  # You need to create a file named aws_creds.yaml (update path below) with the 
+  # following variables:
+  #
+  #  ec2_access_key: "--your-key-here--"
+  #  ec2_secret_key: "--your-secret-here--"
+  #
+  vars_files:
+    - ../../../creds/aws_creds.yaml
+    - ../../../creds/big_creds.yaml
+    - ./vars.yaml
+
+#------------------------------------------------------------------------------
+# End variables
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+  tasks:
+
+
+  - name: CREATE VPC IN "{{ aws_region }}"
+    ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ aws_region }}"
+      state: present
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: create_vpc
+
+
+  - name: "SET FACT: VPC ID"
+    set_fact:
+      vpc_id: "{{ create_vpc.vpc.id }}"
+  
+
+  - name: CREATE VPC SUBNETS
+    ec2_vpc_subnet:
+      vpc_id: "{{ vpc_id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ item.az }}"
+      tags:
+        name: "{{ item.name }}"
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      state: present
+    with_items: "{{ vpc_subnets }}"
+    register: create_vpc_subnets
+
+
+  - name: "COLLECT SUBNET FACTS"
+    ec2_vpc_subnet_facts:
+      filters:
+        vpc-id: "{{ vpc_id }}"
+    register: vpc_subnet_facts
+
+
+  - name: "SET FACT: VPC SUBNET IDS"
+    set_fact:
+      vpc_subnet_ids: "{{ vpc_subnet_ids | default({}) | combine({ (item.tags.name | default('default')): item.id }) }}"
+    loop: "{{ vpc_subnet_facts.subnets }}"
+
+
+  - name: CREATE INTERNET GATEWAY
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_id }}"
+      state: present
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: create_gateway
+
+
+  - name: "SET FACT: GATEWAY ID"
+    set_fact:
+      vpc_gateway_id: "{{ create_gateway.gateway_id }}"
+ 
+
+  # public route table that routes through the internet gateway -- attach it to our three public subnets
+  - name: CREATE ROUTE TABLE FOR PUBLIC SUBNETS
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_id }}"
+      state: present
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      subnets:
+        - "{{ vpc_subnet_ids.mgmt_a }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ vpc_gateway_id }}"
+
+
+  - name: CREATE SECURITY GROUP
+    ec2_group:
+      name: "{{ sg_name }}"
+      description: "{{ sg_name }} security group"
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      rules:
+        - proto: tcp
+          ports:
+          - 22
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 22
+        - proto: tcp
+          ports:
+          - 443
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 443
+        - proto: tcp
+          ports:
+          - 3389
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow all on port 3389
+
+
+  - name: GET AMI FACTS
+    ec2_ami_facts:
+      image_ids: ami-03581e6142a3e1a81
+      #filters:
+        #name: "xworkspace*"
+    register: ami_facts
+
+
+  - name: "AMI FACTS"
+    debug:
+      msg: "{{ ami_facts }}"
+  
+
+  - name: "DEPLOY EC2 INSTANCE USING AMI"
+    ec2:
+      key_name: "{{ sshKey }}"
+      instance_type: t2.medium
+      image: ami-03581e6142a3e1a81
+      wait: yes
+      group: "{{ sg_name }}"
+      count: 3
+      vpc_subnet_id: "{{ vpc_subnet_ids.mgmt_a }}"
+      assign_public_ip: yes
+      instance_tags:
+        type: ubuntu-workstation
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: ec2_facts
+
+ 
+  - name: UBUNTU LOGINS READY - "{{ aws_region }}"
+    debug:
+      msg: "You should now be able to login to the UBUNTU on https://{{ item.public_ip }} \r\n\r\nUSER: ubuntu\r\n\r\nPASSWORD: {{ item.id }}\r\n"
+    loop: "{{ ec2_facts.instances }}"
+
+
+  - name: WAIT FOR SSH TO BECOME AVAILABLE
+    wait_for:
+      host: "{{ item.public_ip }}"
+      port: 22
+      delay: 10
+      sleep: 10
+      timeout: 600
+      msg: "Failed to detect SSH port open"
+    loop: "{{ ec2_facts.instances }}"
+
+
+  - name: ADD NEW INSTANCES TO HOST GROUP
+    local_action: add_host hostname={{ item.public_ip }}
+                  groupname=launched_ec2s
+    with_items: "{{ ec2_facts.instances }}"
+
+
+- import_playbook: main-post-vdi-deploy.yaml
+
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

@@ -1,0 +1,77 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+- name: REST CALL TO F5 CLOUD SERVICES TO GET AUTH TOKEN
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-auth/login
+    method: POST
+    body: "{ \"username\": \"{{ f5cs_user }}\",\"password\": \"{{ f5cs_pass }}\" }"
+    body_format: json
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_auth_token
+  until: f5cs_auth_token is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO GET ACCOUNT INFO
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-account/user
+    method: GET
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_account_info
+  until: f5cs_account_info is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO DEPLOY GSLB
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-subscription/subscriptions
+    method: POST
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    body: "{{ lookup('template', './declarations/f5cs_gslb.j2', split_lines=False) }}"
+    body_format: json
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_gslb_created
+  until: f5cs_gslb_created is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO ACTIVATE GSLB
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-subscription/subscriptions/{{ f5cs_gslb_created.json.subscription_id }}/activate
+    method: POST
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    body: "{{ lookup('template', './declarations/f5cs_gslb.j2', split_lines=False) }}"
+    body_format: json
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_gslb_activated
+  until: f5cs_gslb_activated is not failed
+  retries: 5
+  delay: 30
+
+
+- name: OUTPUT GSLB IPS
+  debug:
+    msg: "GSLB IP 1: {{ gslb_ips.0 }} & GSLB IP 2: {{ gslb_ips.1 }}  you can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test"
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

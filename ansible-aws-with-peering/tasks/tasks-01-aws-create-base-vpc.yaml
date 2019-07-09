@@ -1,0 +1,90 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+  - name: CREATE VPC
+    ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ aws_region }}"
+      state: present
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: create_vpc
+    until: create_vpc is not failed
+    retries: 5
+
+
+  - name: "SET FACT: VPC ID"
+    set_fact:
+      vpc_id: "{{ create_vpc.vpc.id }}"
+  
+
+  - name: CREATE VPC SUBNETS
+    ec2_vpc_subnet:
+      vpc_id: "{{ vpc_id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ item.az }}"
+      tags:
+        name: "{{ item.name }}"
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      state: present
+    with_items: "{{ vpc_subnets }}"
+    register: create_vpc_subnets
+
+
+  - name: "COLLECT SUBNET FACTS"
+    ec2_vpc_subnet_facts:
+      filters:
+        vpc-id: "{{ vpc_id }}"
+    register: vpc_subnet_facts
+
+
+  - name: "SET FACT: VPC SUBNET IDS"
+    set_fact:
+      vpc_subnet_ids: "{{ vpc_subnet_ids | default({}) | combine({ (item.tags.name | default('default')): item.id }) }}"
+    loop: "{{ vpc_subnet_facts.subnets }}"
+
+
+  - name: CREATE INTERNET GATEWAY
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_id }}"
+      state: present
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: create_gateway
+
+
+  - name: "SET FACT: GATEWAY ID"
+    set_fact:
+      vpc_gateway_id: "{{ create_gateway.gateway_id }}"
+ 
+
+  # public route table that routes through the internet gateway -- attach it to our three public subnets
+  - name: CREATE ROUTE TABLE FOR MGMT SUBNETS
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_id }}"
+      state: present
+      tags:
+        name: "Arch - Ansible created route table"
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      subnets:
+        - "{{ vpc_subnet_ids.mgmt_a }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ vpc_gateway_id }}"
+    register: create_route
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

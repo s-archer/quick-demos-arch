@@ -1,0 +1,37 @@
+---
+#------------------------------------------------------------------------------
+# Playbook to complete the installation of client tools. 
+#------------------------------------------------------------------------------
+
+- name:  INSTALL CLIENT TOOLS
+  hosts: launched_ec2s
+  gather_facts: no
+  remote_user: ubuntu
+  sudo: yes
+
+
+  tasks:
+
+  - name: MODIFY AUTO-UPDATE SETTINGS TO AVOID INSTALL FRONT-LOCK PROBLEM
+    replace:
+      path: /etc/apt/apt.conf.d/20auto-upgrades
+      regexp: 'Update-Package-Lists "1'
+      replace: 'Update-Package-Lists "0'
+
+
+  - name: INSTALL LATEST POSTMAN 
+    shell: snap install postman
+    register: postman_result
+
+
+  - name: INSTALL LATEST ANSIBLE
+    apt:
+      name: ansible
+      state: latest
+      update_cache: no
+
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

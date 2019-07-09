@@ -1,0 +1,79 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+- name: CREATE LOCAL VPC PEERING CONNECTION
+  ec2_vpc_peer:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_id }}"
+    peer_vpc_id: "{{ peer_vpc_id }}"
+    state: present
+    tags:
+      Name: Peering connection for Ansible Demo VPC to ECS VPC
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+  register: create_vpc_peer
+  until: create_vpc_peer is not failed
+  retries: 5
+
+- name: ACCEPT LOCAL VPC PEERING REQUEST
+  ec2_vpc_peer:
+    region: "{{ aws_region }}"
+    peering_id: "{{ create_vpc_peer.peering_id }}"
+    state: accept
+  register: action_peer
+  until: action_peer is not failed
+  retries: 5
+
+- name: UPDATE ROUTE TABLE FOR NEW VPC TO CONTAINER PEER
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_id }}"
+    route_table_id: "{{ create_route.route_table.id }}"
+    lookup: id
+    state: present
+    tags:
+      name: "Arch - Ansible created route table"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    subnets:
+      - "{{ vpc_subnet_ids.mgmt_a }}"
+      - "{{ vpc_subnet_ids.traffic_a }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ vpc_gateway_id }}"
+      - dest: "{{ peer_vpc_cidr }}"
+        vpc_peering_connection_id: "{{ create_vpc_peer.peering_id }}"
+
+- name: CREATE ROUTE TABLE FOR CONTAINER VPC TO NEW PEER
+  ec2_vpc_route_table:
+    vpc_id: "{{ peer_vpc_id }}"
+    route_table_id: "{{ peer_route_table_id }}"
+    lookup: id
+    state: present
+    tags:
+      name: "Arch - Ansible created route table for traffic subnet"
+      automated: "{{ automation_tool }}"
+      stack: "{{ stack_name }}"
+      UK-SE: "{{ uk_se_name }}"
+    subnets:
+      - 10.0.0.0/24
+      - 10.0.1.0/24 
+      - 10.0.2.0/24     
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ peer_igw_id }}"
+      - dest: "{{ vpc_cidr }}"
+        vpc_peering_connection_id: "{{ create_vpc_peer.peering_id }}"
+
+
+#- name: DEBUG ALL VARS
+#  debug:
+#    msg: "{{ create_route }}"
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...
