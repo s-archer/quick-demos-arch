@@ -4,19 +4,6 @@
 #------------------------------------------------------------------------------
 
 
-  - name: DELETE ANSIBLE CFT DEPLOYMENT
-    cloudformation:
-      stack_name: "{{ stack_name }}"
-      state: absent
-      region: "{{ aws_region }}"
-      disable_rollback: true
-      tags:
-        automated: "{{ automation_tool }}"
-        stack: "{{ stack_name }}"
-        UK-SE: "{{ uk_se_name }}"
-    ignore_errors: True
-
-
   - name: GET VPC ID USING TAGS DEFINED DURING AUTOMATED BUILD
     ec2_vpc_net_facts:
       region: "{{ aws_region }}"
@@ -26,7 +13,11 @@
         "tag:automated": "{{ automation_tool }}"
     register: vpc_facts
     ignore_errors: True
-  
+
+  - name: OUTPUT VPC ID
+    debug:
+      msg: "{{ vpc_facts }}"
+    ignore_errors: True
 
   - name: OUTPUT VPC ID
     debug:
@@ -67,7 +58,11 @@
       state: absent
       cidr_block: "{{ vpc_cidr }}"
       region: "{{ aws_region }}"
-    ignore_errors: True
+    # ignore_errors: True
+    retries: 10
+    delay: 10
+    register: result
+    until: result.failed == 0
 
 #------------------------------------------------------------------------------
 # End tasks
