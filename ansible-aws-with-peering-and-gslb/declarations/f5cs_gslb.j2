@@ -1,6 +1,6 @@
 {
     "account_id": "{{ f5cs_account_info.json.primary_account_id }}",
-    "catalog_id": "c-aa_preview",
+    "catalog_id": "c-aaQnOrPjGu",
     "plan_id": "p-__free_dns",
     "service_instance_name": "{{gslb_service_name}}",
     "service_type": "gslb",
@@ -40,6 +40,7 @@
             },
             "pools": {
                 "{{ gslb_service_name_short }}_uk_pool": {
+                    "display_name": "{{ gslb_service_name }}_uk_pool",
                     "enable": true,
                     "rr_type": "A",
                     "ttl": 30,
@@ -54,6 +55,7 @@
                     ]
                 },
                 "{{ gslb_service_name_short }}_us_pool": {
+                    "display_name": "{{ gslb_service_name }}_us_pool",
                     "enable": true,
                     "rr_type": "A",
                     "ttl": 30,
@@ -88,12 +90,14 @@
             },
             "virtual_servers": {
                 "{{ gslb_service_name_short }}_vs_region_eu_west2": {
+                    "display_name": "{{ gslb_service_name }}_vs_region_eu_west2",
                     "port": 80,
                     "monitor": "none",
                     "address_family": "ipv4",
                     "address": "{{ gslb_ips.0 | urlsplit('hostname') }}"
                 },
                 "{{ gslb_service_name_short }}_vs_region_us_east1": {
+                    "display_name": "{{ gslb_service_name }}_vs_region_us_east1",
                     "port": 80,
                     "monitor": "none",
                     "address_family": "ipv4",

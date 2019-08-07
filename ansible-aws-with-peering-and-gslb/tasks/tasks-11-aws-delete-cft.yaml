@@ -3,7 +3,6 @@
 # Start Tasks
 #------------------------------------------------------------------------------
 
-
   - name: GATHER FACTS ABOUT CFT BEFORE DELETE 
     cloudformation_facts:
       stack_name: "{{ stack_name }}"

@@ -24,7 +24,10 @@
   #
   vars_files:
     - ../../creds/aws_creds.yaml
+    - ../../creds/big_creds.yaml
+    - ../../creds/f5cs_creds.yaml
     - ./vars/vars.yaml
+    - ./vars/f5cs_gslb_vars.yaml
   
 #------------------------------------------------------------------------------
 # End variables
@@ -49,6 +52,11 @@
     loop_control:
       loop_var: aws_region
 
+  - include_tasks: ./tasks/tasks-12-f5cs-delete-gslb.yaml
+    loop:
+      - region: eu-west-2
+    loop_control:
+      loop_var: aws_region
 
 #------------------------------------------------------------------------------
 # End tasks

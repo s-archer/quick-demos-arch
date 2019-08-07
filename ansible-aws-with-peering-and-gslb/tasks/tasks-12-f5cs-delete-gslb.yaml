@@ -1,0 +1,69 @@
+---
+#------------------------------------------------------------------------------
+# Start Tasks
+#------------------------------------------------------------------------------
+
+- name: REST CALL TO F5 CLOUD SERVICES TO GET AUTH TOKEN
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-auth/login
+    method: POST
+    body: "{ \"username\": \"{{ f5cs_user }}\",\"password\": \"{{ f5cs_pass }}\" }"
+    body_format: json
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_auth_token
+  until: f5cs_auth_token is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO GET ACCOUNT INFO
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-account/user
+    method: GET
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_account_info
+  until: f5cs_account_info is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO GET SUBSCRIPTIONS
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-subscription/subscriptions?status=_allStatusFilter&account_id={{ f5cs_account_info.json.primary_account_id }}
+    method: GET
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  register: f5cs_subscription_info
+  until: f5cs_subscription_info is not failed
+  retries: 5
+  delay: 30
+
+
+- name: REST CALL TO F5 CLOUD SERVICES TO DELETE GSLB
+  uri:
+    url: https://api.cloudservices.f5.com/v1/svc-subscription/subscriptions/{{ item.subscription_id }}/retire
+    method: POST
+    headers:
+      Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
+    status_code: 200
+    timeout: 120
+    validate_certs: no
+  loop: "{{f5cs_subscription_info.json.subscriptions}}"
+  when: item.service_instance_name == "{{ gslb_service_name }}"
+  retries: 5
+  delay: 30
+
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...
