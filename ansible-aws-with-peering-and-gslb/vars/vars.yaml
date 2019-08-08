@@ -14,7 +14,7 @@
 # Finally, do not use spaces or unusual characters in the variable values!
 #
     uk_se_name: arch
-    stack_name: ansible-f5-demo-build
+    stack_name: ansible-f5-gslb-demo
     
     aws_region: eu-west-2
     subnet_start: "10.1"
