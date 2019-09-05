@@ -58,6 +58,7 @@
         - autowsStack2
         - autowsStack3
         - autowsStack4
+        - autowsStack5
     loop_control:
       loop_var: stack_name
 
