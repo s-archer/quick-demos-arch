@@ -8,7 +8,7 @@
     ec2_vpc_net_facts:
       region: "{{ aws_region }}"
       filters:
-        "tag:stack": "{{ stack_name }}"
+        "tag:Name": "{{ vpc_name }}"
         "tag:UK-SE": "{{ uk_se_name }}"
         "tag:automated": "{{ automation_tool }}"
     register: vpc_facts
