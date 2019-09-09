@@ -14,10 +14,12 @@
     register: vpc_facts
     ignore_errors: True
 
+
   - name: OUTPUT VPC ID
     debug:
       msg: "{{ vpc_facts }}"
     ignore_errors: True
+
 
   - name: OUTPUT VPC ID
     debug:
@@ -47,7 +49,6 @@
       vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
       tags:
         automated: "{{ automation_tool }}"
-        stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
       state: absent
     ignore_errors: True

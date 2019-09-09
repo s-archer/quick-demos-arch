@@ -40,6 +40,13 @@
 
   tasks:
 
+  - include_tasks: aws-create-vpc-tasks.yaml
+  - include_tasks: aws-create-cft-tasks.yaml
+    loop: "{{ cft_stack_name_list }}"
+    loop_control:
+      loop_var: stack_name
+  - include_tasks: aws-create-outputs.yaml
+
 # Use/uncomment the loop control below to create single devices in multiple regions.
 #
 #  - include_tasks: aws-create-tasks.yaml
@@ -53,19 +60,6 @@
 #        
 #    loop_control:
 #      loop_var: aws_region
-
-
-# Use/uncomment the loop control below to create single devices in same region.
-#
-  - include_tasks: aws-create-tasks.yaml
-    loop:
-        - autowsStack1
-        - autowsStack2
-        - autowsStack3
-        - autowsStack4
-        - autowsStack5
-    loop_control:
-      loop_var: stack_name
 
 
 #------------------------------------------------------------------------------

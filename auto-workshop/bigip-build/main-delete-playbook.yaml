@@ -53,12 +53,7 @@
 # Use/uncomment the loop control below to create single devices in same region.
 #
   - include_tasks: aws-delete-cft-tasks.yaml
-    loop:
-        - autowsStack1
-        - autowsStack2
-        - autowsStack3
-        - autowsStack4
-        - autowsStack5
+    loop: "{{ cft_stack_name_list }}"
     loop_control:
       loop_var: stack_name
 

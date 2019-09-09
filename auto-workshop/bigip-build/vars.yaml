@@ -13,11 +13,18 @@
 # don't update them, I'll be usung the same tags and might delete your deployment.
 # Finally, do not use spaces or unusual characters in the variable values!
 #
+
     uk_se_name: arch
     stack_name: ansible-f5-auto-ws
-    
+
     aws_region: eu-west-2
     subnet_start: "10.1"
+
+# The next variable defines how many CFTs will be deployed:
+
+    cft_stack_name_list:
+      - autows-cft-stack-1
+      - autows-cft-stack-2
 #    
 #------------------------------------------------------------------------------
 #
@@ -38,6 +45,7 @@
         az: "{{ aws_region }}a"
     sg_name: "{{ uk_se_name }}-autows-bigips"
     route_id: []
+    bigip_mgmt_ips: 
 
 #------------------------------------------------------------------------------
 ...
