@@ -58,7 +58,10 @@
     timeout: 120
     validate_certs: no
   loop: "{{f5cs_subscription_info.json.subscriptions}}"
-  when: item.service_instance_name == "{{ gslb_service_name }}"
+  when:
+  # multiple conditions in a when list must all be true... a logical AND.
+    - item.service_type == "gslb"
+    - item.service_instance_name == "{{ gslb_service_name }}"
   retries: 5
   delay: 30
 

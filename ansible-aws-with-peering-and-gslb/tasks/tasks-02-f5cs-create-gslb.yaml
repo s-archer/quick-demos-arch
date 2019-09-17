@@ -69,7 +69,7 @@
 
 - name: OUTPUT GSLB IPS
   debug:
-    msg: "GSLB IP 1: {{ gslb_ips.0 }} & GSLB IP 2: {{ gslb_ips.1 }}  you can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test, or if using ns91.dns.cloudservices.f5.com as your resolver, you can access https://{{ gslb_zone_a_record }}.{{ gslb_zone }}"
+    msg: "GSLB IP 1: {{ gslb_ips.0 }} & GSLB IP 2: {{ gslb_ips.1 }}  you can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test, or if using ns91.dns.cloudservices.f5.com as your resolver, you can access https://{{ gslb_zone_a_record }}.{{ gslb_zone }}\n\nApplication available at http://arcadia.archf5.com"
 
 #------------------------------------------------------------------------------
 # End tasks
