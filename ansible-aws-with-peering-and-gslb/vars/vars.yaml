@@ -14,7 +14,7 @@
 # Finally, do not use spaces or unusual characters in the variable values!
 #
     uk_se_name: arch
-    stack_name: "{{ uk_se_name }}-ansible-f5-gslb-demo"
+    stack_name: "{{ uk_se_name }}-arcadia-gslb-demo"
     
     #aws_region: eu-west-2
     subnet_start: "10.1"
@@ -26,7 +26,7 @@
     sshKey: "arch_id_rsa"
     ssh_key_file_path: "~/.ssh/id_rsa"
     
-    vpc_name: "{{ uk_se_name }}-{{ stack_name }}"
+    vpc_name: "{{ stack_name }}"
     vpc_cidr: "{{ subnet_start }}.0.0/16"
     vpc_subnets:
       - name: mgmt_a

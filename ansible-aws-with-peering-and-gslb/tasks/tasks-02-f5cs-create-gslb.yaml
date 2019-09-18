@@ -70,7 +70,7 @@
 
 - name: OUTPUT GSLB IPS
   debug:
-    msg: "GSLB IP 1: {{ hostvars[groups['bigips'][0]]['gslb_ip'] }}\n GSLB IP 2: {{ hostvars[groups['bigips'][1]]['gslb_ip'] }}\nYou can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test.\n\nClick here to open in browser : http://arcadia.archf5.com"
+    msg: "GSLB IP 1: {{ hostvars[groups['bigips'][0]]['gslb_ip'] }}\nGSLB IP 2: {{ hostvars[groups['bigips'][1]]['gslb_ip'] }}\n\nYou can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test.\n\nClick here to open in browser : http://arcadia.archf5.com"
 
 #------------------------------------------------------------------------------
 # End tasks
