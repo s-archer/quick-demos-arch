@@ -1,0 +1,7 @@
+# Tell Ansible to use Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See https://docs.ansible.com/ansible/2.8/reference_appendices/interpreter_discovery.html for more information
+ansible_python_interpreter: /usr/bin/python
+aws_region:
+  region: us-east-1
+  peer_vpc_id: vpc-0fd7fb73de0548dea
+  peer_route_table_id: rtb-03b34da7b13f617fe
+  peer_igw_id: igw-0ab2ef472ae2e279a

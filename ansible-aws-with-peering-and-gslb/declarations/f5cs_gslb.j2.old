@@ -94,14 +94,14 @@
                     "port": 80,
                     "monitor": "none",
                     "address_family": "ipv4",
-                    "address": "{{ hostvars[groups['bigips'][0]]['gslb_ip'] | urlsplit('hostname') }}"
+                    "address": "{{ gslb_ips.0 | urlsplit('hostname') }}"
                 },
                 "{{ gslb_service_name_short }}_vs_region_us_east1": {
                     "display_name": "{{ gslb_service_name }}_vs_region_us_east1",
                     "port": 80,
                     "monitor": "none",
                     "address_family": "ipv4",
-                    "address": "{{ hostvars[groups['bigips'][1]]['gslb_ip'] | urlsplit('hostname') }}"
+                    "address": "{{ gslb_ips.1 | urlsplit('hostname') }}"
                 }
             },
             "monitors": {

@@ -3,6 +3,7 @@
 # Start tasks
 #------------------------------------------------------------------------------
 
+
 - name: REST CALL TO F5 CLOUD SERVICES TO GET AUTH TOKEN
   uri:
     url: https://api.cloudservices.f5.com/v1/svc-auth/login
@@ -39,7 +40,7 @@
     method: POST
     headers:
       Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
-    body: "{{ lookup('template', './declarations/f5cs_gslb.j2', split_lines=False) }}"
+    body: "{{ lookup('template', '../declarations/f5cs_gslb.j2', split_lines=False) }}"
     body_format: json
     status_code: 200
     timeout: 120
@@ -56,7 +57,7 @@
     method: POST
     headers:
       Authorization: "Bearer {{ f5cs_auth_token.json.access_token }}"
-    body: "{{ lookup('template', './declarations/f5cs_gslb.j2', split_lines=False) }}"
+    body: "{{ lookup('template', '../declarations/f5cs_gslb.j2', split_lines=False) }}"
     body_format: json
     status_code: 200
     timeout: 120
@@ -69,7 +70,7 @@
 
 - name: OUTPUT GSLB IPS
   debug:
-    msg: "GSLB IP 1: {{ gslb_ips.0 }} & GSLB IP 2: {{ gslb_ips.1 }}  you can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test, or if using ns91.dns.cloudservices.f5.com as your resolver, you can access https://{{ gslb_zone_a_record }}.{{ gslb_zone }}\n\nApplication available at http://arcadia.archf5.com"
+    msg: "GSLB IP 1: {{ hostvars[groups['bigips'][0]]['gslb_ip'] }}\n GSLB IP 2: {{ hostvars[groups['bigips'][1]]['gslb_ip'] }}\nYou can dig {{ gslb_zone_a_record }}.{{ gslb_zone }} @ns91.dns.cloudservices.f5.com to test.\n\nClick here to open in browser : http://arcadia.archf5.com"
 
 #------------------------------------------------------------------------------
 # End tasks

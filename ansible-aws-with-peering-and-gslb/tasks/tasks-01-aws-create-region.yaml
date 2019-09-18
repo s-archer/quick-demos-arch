@@ -281,7 +281,7 @@
     force_basic_auth: yes
     user: "{{ bigip_user }}"
     password: "{{ bigip_pass }}"
-    body: "{{ lookup('template', './declarations/as3-declaration.j2', split_lines=False) }}"
+    body: "{{ lookup('template', '../declarations/as3-declaration.j2', split_lines=False) }}"
     body_format: json
     status_code: 200
     timeout: 120
@@ -300,10 +300,15 @@
     - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip2ManagementEipAddress }}"
 
 
-- name: APPEND TO GSLB IP LIST
+- name: SAVE GSLB IP TO VARIABLE (HOSTVAR)
   set_fact:
-    gslb_ips: "{{ gslb_ips }} + [ '{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1VipEipAddress }}' ] "
-    
+    gslb_ip: "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1VipEipAddress }}"
+
+
+#- name: POPULATE GSLB DECLARTION AND SAVE AS JSON
+#  template: 
+#    src: ../declarations/f5cs_gslb.j2
+#    dest: ../declarations/f5cs_gslb.json
 
 #------------------------------------------------------------------------------
 # End tasks

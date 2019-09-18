@@ -1,0 +1,20 @@
+---
+#------------------------------------------------------------------------------
+# Playbook to CREATE AWS demo environment. 
+#------------------------------------------------------------------------------
+
+- name: CREATE REGION
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+
+  vars_files:
+    - ../../../creds/f5cs_creds.yaml
+    - ../vars/vars.yaml
+    - ../vars/f5cs_gslb_vars.yaml
+
+  tasks:
+    - include_tasks: ../tasks/tasks-02-f5cs-create-gslb.yaml
+
+...

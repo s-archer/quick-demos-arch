@@ -1,0 +1,37 @@
+---
+#------------------------------------------------------------------------------
+# Playbook to CREATE AWS demo environment. 
+#------------------------------------------------------------------------------
+
+- name: CREATE REGION
+  hosts: bigips
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region.region }}"
+
+  vars_files:
+    - ../../../creds/aws_creds.yaml
+    - ../../../creds/big_creds.yaml
+    - ../vars/vars.yaml
+
+  tasks:
+    - include_tasks: ../tasks/tasks-01-aws-create-region.yaml
+
+
+- name: CREATE GSLB
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - ../../../creds/f5cs_creds.yaml
+    - ../vars/vars.yaml
+    - ../vars/f5cs_gslb_vars.yaml
+
+  tasks:
+    - include_tasks: ../tasks/tasks-02-f5cs-create-gslb.yaml
+...
