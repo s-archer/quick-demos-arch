@@ -1,0 +1,1 @@
+ansible-playbook -i inventory create.yaml --ask-vault-pass
