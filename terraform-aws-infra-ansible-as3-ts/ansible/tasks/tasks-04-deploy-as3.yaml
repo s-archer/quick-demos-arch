@@ -1,0 +1,91 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+# If not using terraform, you could use these next two blocks to install AS3.
+#
+#Set Var for curent AS3 file name
+#  - name: RETRIEVE AS3 VERSION FROM FILE
+#    find:
+#      paths: ../files
+#      patterns: "f5-appsvcs*.rpm"
+#    register: as3rpm
+#    delegate_to: localhost
+
+
+#  - name: DEBUG FILE NAME
+#    debug:
+#      msg: "{{ as3rpm.files[0].path }}"
+
+
+#  - name: INSTALL AS3
+#    bigip_lx_package:
+#      provider:
+#        server: "{{ inventory_hostname }}"
+#        user: "admin"
+#        password: "{{ aws_secret }}"
+#        ssh_keyfile: "{{ ssh_key_file_path }}"
+#        validate_certs: no
+#        server_port: 443
+#      package: "{{ as3rpm.files[0].path }}"
+#    delegate_to: localhost
+
+
+  - name: WAIT FOR AS3 API (204 or 200 WHEN DECLARATION EXISTS)
+    uri:
+      url: "https://{{ inventory_hostname }}/mgmt/shared/appsvcs/declare"
+      method: GET
+      user: admin
+      password: "{{ aws_secret }}"
+      force_basic_auth: yes
+      status_code: 
+        - 200
+        - 204
+      validate_certs: no
+    retries: 30
+    delay: 5
+    register: as3_result
+    until: ('status' in as3_result and (as3_result.status == 200 or as3_result.status == 204 ))
+    changed_when: false
+
+
+  - name: AS3 REST CALL TO BIG-IP USING JINJA2 TEMPLATE - COMMON
+    uri:
+      url: "https://{{ inventory_hostname }}/mgmt/shared/appsvcs/declare"
+      method: POST
+      force_basic_auth: yes
+      user: admin
+      password: "{{ aws_secret }}"
+      body: "{{ lookup('template', '../templates/as3-declaration.j2', split_lines=False) }}"
+      body_format: json
+      status_code: 200,202
+      timeout: 120
+      validate_certs: no
+    register: deploy_as3
+    until: deploy_as3 is not failed
+    retries: 5
+    delay: 30
+
+
+#  - name: AS3 REST CALL TO BIG-IP USING JINJA2 TEMPLATE - ARCADIA TENANT
+#    uri:
+#      url: "https://{{ inventory_hostname }}/mgmt/shared/appsvcs/declare"
+#      method: POST
+#      force_basic_auth: yes
+#      user: admin
+#      password: "{{ aws_secret }}"
+#      body: "{{ lookup('template', '../templates/as3-declaration-arcadia.j2', split_lines=False) }}"
+#      body_format: json
+#      status_code: 200,202
+#      timeout: 120
+#      validate_certs: no
+#    register: deploy_as3
+#    until: deploy_as3 is not failed
+#    retries: 5
+#    delay: 30
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

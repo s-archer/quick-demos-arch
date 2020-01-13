@@ -1,0 +1,170 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# DELETE JUICE CENTOS INSTANCE
+#------------------------------------------------------------------------------
+
+
+- name: GET CENTOS AMI FACTS
+  ec2_instance_facts:
+    filters:
+      "tag:Name": "{{ uk_se_name }}-juice-shop"
+      "tag:UK-SE": "{{ uk_se_name }}"
+  register: centos_facts
+
+
+- name: INITIALISE EMPTY LIST
+  set_fact:
+    centos_id: []
+
+
+- name: APPEND STRING TO LIST
+  set_fact:
+    centos_id: "{{ centos_id + [ centos_facts.instances[0].instance_id ] }}"
+
+
+- name: OUTPUT CENTOS INSTANCE ID - FINAL
+  debug: 
+    msg: "{{ centos_id }}"
+
+
+- name: DESTROY CENTOS EC2 USING DISCOVERED AMI ID
+  ec2:
+    instance_ids: "{{ centos_id }}"
+    state: absent
+
+
+#------------------------------------------------------------------------------
+# DELETE ELASTIC CENTOS INSTANCE
+#------------------------------------------------------------------------------
+
+
+- name: GET CENTOS AMI FACTS
+  ec2_instance_facts:
+    filters:
+      "tag:Name": "{{ uk_se_name }}-elasticstack"
+      "tag:UK-SE": "{{ uk_se_name }}"
+  register: centos_facts
+
+
+- name: INITIALISE EMPTY LIST
+  set_fact:
+    centos_id: []
+
+
+- name: APPEND STRING TO LIST
+  set_fact:
+    centos_id: "{{ centos_id + [ centos_facts.instances[0].instance_id ] }}"
+
+
+- name: OUTPUT CENTOS INSTANCE ID - FINAL
+  debug: 
+    msg: "{{ centos_id }}"
+
+
+- name: DESTROY CENTOS ELASTIC EC2 USING DISCOVERED AMI ID
+  ec2:
+    instance_ids: "{{ centos_id }}"
+    state: absent
+
+
+#------------------------------------------------------------------------------
+# CREATE NEW RANDOM ID FOR NEXT TIME
+#------------------------------------------------------------------------------
+
+
+- name: GENERATE NEW RANDOM ID FOR NEXT CENTOS INSTANCE (WHEN YOU USE MAIN PLAYBOOK)
+  set_fact:
+    random: "{{ 9999 | random }}"
+
+
+- name: WRITE RANDOM ID TO FILE FOR NEXT CENTOS INSTANCE (WHEN YOU USE MAIN PLAYBOOK)
+  blockinfile:
+    path: "../vars/id.yaml"
+    marker: "#<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+    create: yes
+    block: |
+      # USED FOR SEMI-TEMPORARY ID FOR CENTOS INSTANCE, SO IT CAN REMAIN IDEMPOTENT
+      # ONCE INSTANCE WITH ID IS DELETED, IT CANNOT BE REUSED WITHIN 24 HOURS
+      centos_app_id: "{{ random }}"
+
+
+#------------------------------------------------------------------------------
+# DISSACOCIATE AND DELETE EIPS
+#------------------------------------------------------------------------------
+
+
+- name: OUTPUT EC2 INSTANCE NETWORK INTERFACE IDS FROM DYNAMIC INVENTORY
+  debug: 
+    msg: "{{ ec2_int_ids }}"
+
+
+  # Next four tasks should be done in two tasks, each with a loop, but bug means that in the combined 'results' is 
+  # only partially complete... the network_interfaces element for each result is empty {}.
+- name: GET ENI INFO FOR FIRST ENI
+  ec2_eni_facts:
+    filters:
+      network-interface-id: "{{ ec2_int_ids[0] }}"
+  register: eni_facts0
+
+
+- name: GET ENI INFO FOR SECOND ENI
+  ec2_eni_facts:
+    filters:
+      network-interface-id: "{{ ec2_int_ids[1] }}"
+  register: eni_facts1
+
+
+- name: SET FACT IF ENI IS PUBLIC
+  set_fact:
+    aws_pub_eni_id: "{{ eni_facts0.network_interfaces[0].network_interface_id }}"
+  when: eni_facts0.network_interfaces[0].groups[0].group_name=='public' and aws_pub_eni_id is undefined
+
+
+- name: SET FACT IF ENI IS PUBLIC
+  set_fact:
+    aws_pub_eni_id: "{{ eni_facts1.network_interfaces[0].network_interface_id }}"
+  when: eni_facts1.network_interfaces[0].groups[0].group_name=='public' and aws_pub_eni_id is undefined
+
+
+- name: GET ENI FACTS
+  ec2_eni_facts:
+    filters:
+      network-interface-id: "{{ aws_pub_eni_id }}"
+  register: ec2_eni_facts
+
+
+- name: DEBUG OUTPUT EXISTING PUBLIC IPS
+  debug:
+    msg: "Public IP {{ index }}: {{ item.association.public_ip }}"
+  loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
+  loop_control:
+    index_var: index
+  ignore_errors: yes
+
+
+- name: DISASSOCIATE EIPS FROM ENI
+  ec2_eip:
+    public_ip: "{{ item.association.public_ip }}"
+    device_id: "{{ aws_pub_eni_id }}"
+    private_ip_address: "{{ item.private_ip_address }}"
+    in_vpc: true
+    state: absent
+    release_on_disassociation: yes
+  loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
+  loop_control:
+    index_var: index
+  ignore_errors: yes
+
+
+- name: OUTPUT ADVICE
+  debug:
+    msg: "You should now be able to delete the inrastructure with terraform destroy"
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

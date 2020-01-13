@@ -1,0 +1,34 @@
+---
+
+- name: CREATE SSL CONFIG DIRECTORY ON NGINX PLUS
+  file:
+    path: /etc/nginx/ssl
+    state: directory
+  become: yes
+
+  
+- name: GENERATE A DEFAULT SELF-SIGNED CERT & KEY
+  raw: "openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt"
+  become: yes
+
+  
+- name: COPY APP CONFIG TO NGINX PLUS
+  #delegate_to: "{{ ec2.instances[0].public_ip }}"
+  copy:
+    src: ../config/lab-lb.conf
+    dest: /etc/nginx/conf.d/ab-lb.conf
+    owner: root
+    mode: '0644'
+  become: yes
+
+
+- name: RESTART NGINX PLUS
+  service:
+    name: nginx
+    state: reloaded
+  become: yes
+
+
+
+
+...

@@ -1,0 +1,126 @@
+---
+#------------------------------------------------------------------------------
+# Ansible Playbook to Delete Demo Environment
+#------------------------------------------------------------------------------
+- name: PROVISION VPC SUBNETS & F5 INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+
+#------------------------------------------------------------------------------
+# Load Variables from files 
+#------------------------------------------------------------------------------
+  
+  # You need to create a file named aws_creds.yaml (update path below) with the following variables:
+  #
+  #  ec2_access_key: "--your-key-here--"
+  #  ec2_secret_key: "--your-secret-here--"
+  #
+  vars_files:
+    - ../../creds/aws_creds.yaml
+    - ./vars/vars.yaml
+  
+#------------------------------------------------------------------------------
+# End variables
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Start Tasks
+#------------------------------------------------------------------------------
+
+  tasks:
+
+  - ec2_instance_facts:
+      filters:
+        "tag:stack": "{{ stack_name }}"
+        "tag:UK-SE": "{{ uk_se_name }}"
+        "tag:automated": "{{ automation_tool }}"
+    register: ec2_instance_facts
+    ignore_errors: True
+
+
+  - name: OUTPUT DISCOVERED INSTANCE ID
+    debug:
+      msg: "WILL DELETE INSTANCE ID: {{ ec2_instance_facts }}"
+
+
+  - name: DELETE NGINX EC2 INSTANCE
+    ec2:
+      state: absent
+      wait: yes
+      instance_ids: "{{ ec2_instance_facts.instances[0].instance_id }}"
+      instance_tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+
+
+  - name: GET VPC ID USING TAGS DEFINED DURING AUTOMATED BUILD
+    ec2_vpc_net_facts:
+      region: "{{ aws_region }}"
+      filters:
+        "tag:stack": "{{ stack_name }}"
+        "tag:UK-SE": "{{ uk_se_name }}"
+        "tag:automated": "{{ automation_tool }}"
+    register: vpc_facts
+    ignore_errors: True
+  
+
+  - name: OUTPUT VPC ID
+    debug:
+      msg: "Identified VPC: {{ vpc_facts.vpcs[0].vpc_id }}. This will be deleted."
+    ignore_errors: True
+
+
+  - name: DELETE INTERNET GATEWAY
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      state: absent
+    ignore_errors: True
+
+
+  - name: DELETE VPC SUBNETS
+    ec2_vpc_subnet:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ item.az }}"
+      state: absent
+    with_items: "{{ vpc_subnets }}"
+    ignore_errors: True
+
+
+  - name: DELETE ROUTE TABLE
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      state: absent
+    ignore_errors: True
+
+
+  - name: CREATE SECURITY GROUP FOR PUBLIC SUBNET
+    ec2_group:
+      state: absent
+      name: "nginx-sg"
+    ignore_errors: True
+
+
+  - name: DELETE VPC
+    ec2_vpc_net:
+      name: "{{ vpc_name }}" 
+      state: absent
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ aws_region }}"
+    ignore_errors: True
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

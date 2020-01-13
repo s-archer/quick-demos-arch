@@ -1,0 +1,50 @@
+---
+#------------------------------------------------------------------------------
+# PLAYBOOK TO CREATE AWS VPC AND DEPLOY CENTOS EC2
+#------------------------------------------------------------------------------
+
+- name: PROVISION VPC SUBNETS & CENTOS INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+  
+  vars_files:
+    - ../../creds/aws_creds.yaml
+    - ../../creds/nginx_creds.yaml
+    - ./vars/vars.yaml
+
+  tasks:
+    - include_tasks: ./tasks/create-aws-vpc.yaml
+    - include_tasks: ./tasks/deploy-centos-ami.yaml
+
+#------------------------------------------------------------------------------
+# PLAYBOOK TO INSTALL NGINX ON CENTOS INSTANCES
+#------------------------------------------------------------------------------
+
+- name: INSTALL NGINX ON CENTOS INSTANCES
+  hosts: nginx
+  #connection: local # need to connect directly to nginx instances
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+  
+  vars_files:
+    - ../../creds/aws_creds.yaml
+    - ../../creds/nginx_creds.yaml
+    - ./vars/vars.yaml
+
+  vars:
+    ansible_user: centos
+
+  tasks:
+    - include_tasks: ./tasks/install-nginx.yaml
+    - include_tasks: ./tasks/post-install-config-nginx.yaml
+...
