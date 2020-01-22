@@ -40,10 +40,9 @@ The AWS & Azure Ansible modules require the following Python packages to be inst
  - tornado
  - paramiko
  - f5-sdk
- - azure
 
 
-To allow Ansible to SSH to hosts (especially for BIG-IPs in AWS, in order to change initial password and enable password authentication), you will need an SSH key pair... and you might need to disable host_key_checking in the Ansible config file:
+To allow Ansible to SSH to hosts (specifically for BIG-IPs in AWS, in order to change initial password and enable password authentication), you will need an SSH key pair... and you might need to disable host_key_checking in the Ansible config file:
 
  - create an SSH key pair in PEM format (or use your existing key pair e.g. ~/.ssh/id_rsa[.pub])
  -- ```ssh-keygen -t rsa``` # Accept the default names and do not set a passphrase.  If you're running Python 2.7, you might need to run ```ssh-keygen -t rsa -m PEM``` and append .pem to the filename.\
