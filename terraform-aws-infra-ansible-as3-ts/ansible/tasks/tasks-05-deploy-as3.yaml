@@ -57,7 +57,7 @@
       force_basic_auth: yes
       user: admin
       password: "{{ aws_secret }}"
-      body: "{{ lookup('template', '../templates/as3-declaration.j2', split_lines=False) }}"
+      body: "{{ lookup('template', '../templates/as3-declaration-combined.j2', split_lines=False) }}"
       body_format: json
       status_code: 200,202
       timeout: 120

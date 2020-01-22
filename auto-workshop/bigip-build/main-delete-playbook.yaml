@@ -23,7 +23,7 @@
   #
   vars_files:
     - ../../../creds/aws_creds.yaml
-    - ./vars.yaml
+    - ./vars/vars.yaml
   
 #------------------------------------------------------------------------------
 # End variables
@@ -37,7 +37,7 @@
 
 # Use/uncomment the loop control below to create single devices in multiple regions.
 #
-#  - include_tasks: aws-delete-tasks.yaml
+#  - include_tasks: ./tasks/aws-delete-tasks.yaml
 #    loop:
 #        - eu-west-1
 #        - eu-west-2
@@ -52,12 +52,12 @@
 
 # Use/uncomment the loop control below to create single devices in same region.
 #
-  - include_tasks: aws-delete-cft-tasks.yaml
+  - include_tasks: ./tasks/aws-delete-cft-tasks.yaml
     loop: "{{ cft_stack_name_list }}"
     loop_control:
       loop_var: stack_name
 
-  - include_tasks: aws-delete-vpc-tasks.yaml
+  - include_tasks: ./tasks/aws-delete-vpc-tasks.yaml
 
 #------------------------------------------------------------------------------
 # End tasks

@@ -47,8 +47,8 @@
   - include_tasks: ../tasks/tasks-01b-deploy-elastic-ec2.yaml
   - include_tasks: ../tasks/tasks-02-aws-dynamic-eni-ips.yaml
   - include_tasks: ../tasks/tasks-03-deploy-do.yaml
-  - include_tasks: ../tasks/tasks-04-deploy-as3.yaml
-  - include_tasks: ../tasks/tasks-05-deploy-ts.yaml
+  - include_tasks: ../tasks/tasks-04-deploy-ts.yaml
+  - include_tasks: ../tasks/tasks-05-deploy-as3.yaml
   - include_tasks: ../tasks/tasks-06-outputs.yaml
 
 #------------------------------------------------------------------------------
