@@ -59,6 +59,69 @@ The last line above adds timing information to your playbook, which improves a d
 
  - You can place the ansible.cfg file in the same directory as your playbook, thus providing playbook specific settings, or you can place it in the /etc/ansible/ folder, which provides global settings..
 
+
+### General Configuration Notes
+
+You will need a few more variables in your creds.yaml file (and update path in the 'vars_files' section of the playbooks), depending on what/where you are deploying:
+
+For Azure plays:
+
+```
+bigip_azure_user: "--your-username-here--"
+bigip_azure_pass: "--your-password-here--"
+
+az_subs_id: "<--your-id-here-->"
+az_client_id: "<--your-id-here-->"
+az_secret: "<--your-secret-here-->"
+az_tenant: "<--your-tenant-here-->"
+```
+
+For AWS plays:
+
+```
+bigip_user: "--your-username-here--"
+bigip_pass: "--your-password-here--"
+
+ec2_access_key: "<--your-key-here-->"
+ec2_secret_key: "<--your-secret-here-->"
+```
+
+
+For NGINX Controller 3 plays:
+
+```
+ses_smtp_user: <Register for AWS SES - User> 
+ses_smtp_pass: <Register for AWS SES - Pass>
+
+rds_user: <rds username>
+rds_pass: <rds password>
+
+nginx_user: <user>
+nginx_pass: <password>
+
+nginx_fname: <controller user first name>
+nginx_sname: <controller user surname>
+nginx_email: <controller user email>
+nginx_noreply_email: <controller no-reply email>
+
+```
+
+For F5 CS Beacon plays:
+
+```
+f5_beacon_token: <token>
+```
+
+For Slack Channel output in plays:
+
+```
+slack_token: <token>
+```
+
+### NGINX Configuration Notes
+
+The playbook for NGINX Controller 3.x installation requires AWS SES (Simple Email Service), so you may need to regsiter for that, unless you have an alternative SMTP relay service.  If you want to use the Slack feature, then you will need an account and token.
+
 ### AWS Configuration Notes
 
 
@@ -117,60 +180,4 @@ az_secret: "<--your-secret-here-->"
 az_tenant: "<--your-tenant-here-->"
 ```
 
-### General Configuration Notes
 
-You will need a few more variables in your creds.yaml file (and update path in the 'vars_files' section of the playbooks) with the following variables:
-
-For Azure plays:
-
-```
-bigip_azure_user: "--your-username-here--"
-bigip_azure_pass: "--your-password-here--"
-
-az_subs_id: "<--your-id-here-->"
-az_client_id: "<--your-id-here-->"
-az_secret: "<--your-secret-here-->"
-az_tenant: "<--your-tenant-here-->"
-```
-
-For AWS plays:
-
-```
-bigip_user: "--your-username-here--"
-bigip_pass: "--your-password-here--"
-
-ec2_access_key: "<--your-key-here-->"
-ec2_secret_key: "<--your-secret-here-->"
-```
-
-
-For NGINX Controller 3 plays:
-
-```
-ses_smtp_user: <Register for AWS SES - User> 
-ses_smtp_pass: <Register for AWS SES - Pass>
-
-rds_user: <rds username>
-rds_pass: <rds password>
-
-nginx_user: <user>
-nginx_pass: <password>
-
-nginx_fname: <controller user first name>
-nginx_sname: <controller user surname>
-nginx_email: <controller user email>
-nginx_noreply_email: <controller no-reply email>
-
-```
-
-For F5 CS Beacon plays:
-
-```
-f5_beacon_token: <token>
-```
-
-For Slack Channel output in plays:
-
-```
-slack_token: <token>
-```
