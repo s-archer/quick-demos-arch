@@ -53,7 +53,7 @@
 # by another instance, even after termination, for 24 hours.
   - name: DEPLOY CENTOS EC2 USING DISCOVERED AMI ID
     ec2:
-      id: "{{ app_name }}-{{ centos_app_id }}"
+      id: "{{ app_name }}-{{ centos_app_id }}" 
       image: "{{ ami_find.images[0].image_id }}"
       instance_type: t2.micro
       key_name: "{{ sshKey }}"

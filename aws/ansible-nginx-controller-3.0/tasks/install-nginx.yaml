@@ -1,0 +1,122 @@
+---
+
+- name: ADD EPEL REPO TO YUM FOR JQ INSTALL
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+    gpgcheck: yes
+  become: yes
+
+
+- name: ADD EPEL KEY 
+  rpm_key:
+    state: present
+    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+  become: yes
+
+
+- name: YUM INSTALL PACKAGES & PIP
+  yum:
+    name: 
+      - jq
+      - python-pip
+      - wget
+    lock_timeout: 360
+    state: latest
+  become: yes
+
+
+- name: REMOVE DOCKER (CONTROLLER WILL INSTALL CORRECT VERSION LATER)
+  yum:
+    name: docker
+    state: absent
+  
+  
+- name: PIP INSTALL PACKAGES
+  pip:
+    name: 
+      - pexpect
+    state: latest
+  become: yes
+
+
+- name: DISABLE SWAP (NOW/TEMP) - K8S AND SWAP ARE INCOMPATIBLE
+  shell: |
+    swapoff -a
+  become: yes
+
+
+- name: DISABLE SWAP (PERM) - K8S AND SWAP ARE INCOMPATIBLE
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  become: yes
+
+
+- name: COPY NGINX CONTROLLER INSTALL FILE (~850MB) TO CENTOS - TAKES ~10 MINS 
+  copy:
+    src: ./files/controller-installer-3.0.0.tar.gz
+    dest: /home/centos
+    owner: root
+    mode: '0644'
+  become: yes
+
+
+- name: UNTAR THE INSTALLATION FILE
+  unarchive: 
+    src: /home/centos/controller-installer-3.0.0.tar.gz
+    dest: /home/centos
+    creates: /home/centos/controller-installer/install.sh
+    remote_src: yes
+  become: yes
+
+
+- name: RUN NGINX CONTROLLER 3.x INSTALLATION
+  command: "{{ lookup('template', './templates/installer.j2', split_lines=true) }}"
+  args:
+    creates: "/opt/nginx-controller/stan_data/clients.dat"
+  register: controller_install
+
+
+- name: OUTPUT CONTROLLER INSTALL INFO
+  debug:
+    msg: "{{ controller_install }}"
+    
+
+- name: LICENSE NGINX CONTROLLER 3.x (LOGIN)
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v1/platform/login"
+    method: "POST"
+    body:
+      credentials:
+        type: "BASIC"
+        username: "{{ nginx_email }}"
+        password: "{{ nginx_pass }}"
+    body_format: json
+    return_content: yes
+    status_code: 204
+    validate_certs: false
+  register: login_result
+
+
+- name: LICENSE NGINX CONTROLLER 3.x (POST)
+  uri:
+    url: "https://{{ inventory_hostname }}/api/v1/platform/license-file"
+    method: POST
+    body: 
+      content: "{{ lookup('file', '../../../creds/nginx/controller/controller_license.txt', split_lines=False) | b64encode }}"
+    body_format: json
+    return_content: yes
+    status_code: 200
+    validate_certs: no
+    headers:
+      Cookie: "{{ login_result.set_cookie }}"
+  register: deploy_license
+    
+    
+- name: OUTPUT CONTROLLER LICENSE INFO
+  debug:
+    msg: "{{ deploy_license }}"
+...

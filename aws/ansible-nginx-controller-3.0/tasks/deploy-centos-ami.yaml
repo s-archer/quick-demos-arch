@@ -1,0 +1,62 @@
+---
+
+  - name: FIND CENTOS AMI
+    ec2_ami_facts:
+      region: "{{ aws_region }}"
+      filters:
+        name: "CentOS*7*1901_01*"
+    register: ami_find
+
+
+  - name: OUTPUT DISCOVERED AMI
+    debug:
+      msg: "USING AMI: {{ ami_find.images[0].image_id }}"
+
+
+# Note that idempotency rules mean that 'id' must be unique and not used
+# by another instance, even after termination, for 24 hours.
+  - name: DEPLOY CENTOS EC2 USING DISCOVERED AMI ID
+    ec2:
+      id: "{{ instance_name }}-{{ centos_app_id }}"
+      image: "{{ ami_find.images[0].image_id }}"
+      instance_type: c5.2xlarge
+      key_name: "{{ sshKey }}"
+      group: "nginx-sg"
+      wait: yes
+      vpc_subnet_id: "{{ vpc_subnet_ids.mgmt_a }}"
+      assign_public_ip: yes
+      volumes:
+        - device_name: /dev/sda1
+          volume_type: standard
+          volume_size: 130
+          delete_on_termination: true
+      instance_tags:
+        Name: "{{ instance_name }}"
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: ec2
+
+
+  - name: OUTPUT PUBLIC IP
+    debug:
+      msg: "{{ ec2.instances[0].public_ip }}"
+
+
+  - name: WAIT FOR SSH ACCESS - CHECK EVERY 10 (MAX 600)
+    wait_for:
+      host: "{{ ec2.instances[0].public_ip }}"
+      port: 22
+      delay: 0
+      sleep: 10
+      connect_timeout: 5
+      timeout: 600
+      msg: "Failed to detect SSH port open"
+
+
+  - name: ADD CENTOS TO GROUP NGINX
+    add_host:
+      name: "{{ ec2.instances[0].public_ip }}"
+      groups: nginx
+
+...

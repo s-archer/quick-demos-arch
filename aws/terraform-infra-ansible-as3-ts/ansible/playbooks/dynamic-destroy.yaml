@@ -1,19 +1,12 @@
 ---
 #------------------------------------------------------------------------------
-#  
-# Playbook for 201 Automation Workshop - Runs AFTER Terraform has built Infra.
+# Playbook to DELETE Ansible Components.
 #
-#------------------------------------------------------------------------------
-#   Terraform should create/populate the inventory file ../inventory/bigips.ini
-#   To use this 'static inventory':
-#     Run 'ansible-playbook ./main.yaml -i ../inventory/bigips.ini --ask-vault-pass'
-#   Or you can use the aws_ec2 'dynamic inventory' plugin, in which case:
-#     Run 'ansible-playbook ./main.yaml -i ../inventory/aws_ec2.yaml --ask-vault-pass'
+#   Requires pyvmomi python library
 #------------------------------------------------------------------------------
 
-- name: CONFIGURE DEPLOYED BIG-IP
+- name: DESTROY DEPLOYMEMT
   hosts: bigips
-  
   connection: local
   gather_facts: no
 
@@ -28,7 +21,7 @@
 
   vars_files:
 
-    - ../../../../creds/aws_creds.yaml
+    - ../../../../../creds/aws_creds.yaml
     - ../vars/vars.yaml
     - ../vars/id.yaml    
 
@@ -43,13 +36,7 @@
 
   tasks:
 
-  - include_tasks: ../tasks/tasks-01-deploy-juice-app-ec2.yaml
-  - include_tasks: ../tasks/tasks-01b-deploy-elastic-ec2.yaml
-  - include_tasks: ../tasks/tasks-02-aws-dynamic-eni-ips.yaml
-  - include_tasks: ../tasks/tasks-03-deploy-do.yaml
-  - include_tasks: ../tasks/tasks-04-deploy-ts.yaml
-  - include_tasks: ../tasks/tasks-05-deploy-as3.yaml
-  - include_tasks: ../tasks/tasks-06-outputs.yaml
+  - include_tasks: ../tasks/tasks-11-remove-aws-dynamic-eni-ips.yaml
 
 #------------------------------------------------------------------------------
 # End tasks

@@ -1,0 +1,31 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+
+- name: OUTPUT HTTPS LINK
+  debug:
+    msg: "You should now be able to login to NGINX Controller on https://{{ inventory_hostname }}"
+
+
+- name: SEND NOTIFICATION TO SLACK
+  slack:
+    token: "{{ slack_token }}"
+    attachments:
+      - text: 'You should now be able to login to the demo deployment\n'
+        color: '#36a64f'
+        pretext: Ansible Automation Notification
+        title: NGINX Deployment Complete
+        author_name: "{{ uk_se_name }}"
+        author_icon: 'https://pbs.twimg.com/profile_images/1180559835563053057/ljFaMwR6_400x400.jpg'
+        fields:
+          - title: NGINX Controller Mgmt Link
+            value: "https://{{ inventory_hostname }}"
+            short: false
+  delegate_to: localhost
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

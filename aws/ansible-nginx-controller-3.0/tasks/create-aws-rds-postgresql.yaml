@@ -1,0 +1,42 @@
+---
+  
+  - name: CREATE POSTGRES SQL IN AWS RDS
+    local_action:
+      module: rds
+      command: create
+      instance_name: "{{ uk_se_name }}-nginx-c3-rds-postgres-9-5-19"
+      region: "{{ aws_region }}"
+      size: "20"
+      instance_type: "db.m4.large"
+      db_engine: "postgres"
+      engine_version: "9.5.19"
+      subnet: "{{ uk_se_name }}-rds-sg"
+      multi_zone: yes
+      port: 5432
+      db_name: "nginxc3"
+      username: "{{ rds_user }}"
+      password: "{{ rds_pass }}"
+      vpc_security_groups: "{{ nginx_sg.group_id }}"
+      maint_window: "Sun:01:00-Sun:03:00"
+      backup_retention: "0"
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: rds_info
+    delay: 10
+    retries: 60
+    until: rds_info.instance.endpoint is defined
+
+
+  - name: DEBUG RDS INSTANCE OUT
+    debug:
+      msg: "{{ rds_info.instance.endpoint }}"
+
+
+  - name: SET FACT RDS INFO
+    set_fact:
+      rds_endpoint: "{{ rds_info.instance.endpoint }}"
+
+
+...
