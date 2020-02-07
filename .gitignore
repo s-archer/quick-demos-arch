@@ -1,5 +1,6 @@
-#  Local .terraform directories
+#  Local .terraform directories - Arch
 **/.terraform/*
+**/darwin_amd64/*
 
 # .tfstate files
 *.tfstate
@@ -10,3 +11,11 @@
 
 # Ansible retry files
 *.retry
+
+# Install files
+*.gz
+*.tar
+*.zip
+
+# Creds files
+*creds*
