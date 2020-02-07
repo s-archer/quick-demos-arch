@@ -1,0 +1,1 @@
+nginx-installer-3.0.0.tar.gz goes in this folder
