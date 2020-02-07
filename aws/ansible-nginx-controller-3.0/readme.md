@@ -120,7 +120,11 @@ slack_token: <token>
 
 ### NGINX Configuration Notes
 
-The playbook for NGINX Controller 3.x installation requires AWS SES (Simple Email Service), so you may need to regsiter for that, unless you have an alternative SMTP relay service.  If you want to use the Slack feature, then you will need an account and token.
+The playbook for NGINX Controller 3.x installation requires:
+
+- A valid license file (F5ers https://f5.nginx.com/licenses, Public https://cs.nginx.com)
+- The installation file should be downloaded and stored in the ./files folder.
+- AWS SES (Simple Email Service), so you may need to regsiter for that, unless you have an alternative SMTP relay service.  If you want to use the Slack feature, then you will need an account and token.
 
 ### AWS Configuration Notes
 
