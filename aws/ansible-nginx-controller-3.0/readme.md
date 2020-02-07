@@ -17,15 +17,15 @@
 
 This playbook requires Ansible 2.8.1.  If you have ansible installed, you can run the playbooks with: 
  
- ```ansible-playbook playbook-name```
+ ```ansible-playbook playbook-name -i <inventory>```
 
  or if using valut:
 
-  ```ansible-playbook playbook-name --ask-vault-pass```
+  ```ansible-playbook playbook-name --ask-vault-pass -i <inventory>```
 
  e.g. 
 
-```ansible-playbook main-create.yaml --ask-vault-pass```
+```ansible-playbook main-create.yaml --ask-vault-pass -i ./inventory/dynamic-aws_ec2.yaml```
 
 ## Prerequisites
 

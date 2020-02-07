@@ -30,7 +30,7 @@
         automated: "{{ automation_tool }}"
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
-        Function: "nginx-plus"
+        function: "nginx-plus"
     register: ec2
 
 

@@ -32,10 +32,10 @@
           delete_on_termination: true
       instance_tags:
         Name: "nginx-ctrlr-{{ instance_name }}"
-        Automated: "{{ automation_tool }}"
+        automated: "{{ automation_tool }}"
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
-        Function: "nginx-controller-3"
+        function: "nginx-controller-3"
     register: ec2
 
 
