@@ -111,6 +111,10 @@
           from_port: 5432
           to_port: 5432
           cidr_ip: 10.1.0.0/16
+        - proto: tcp
+          from_port: 8443
+          to_port: 8443
+          cidr_ip: 0.0.0.0/0
       rules_egress:
         - proto: all
           from_port: 0

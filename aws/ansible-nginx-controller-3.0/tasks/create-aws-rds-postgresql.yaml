@@ -24,9 +24,9 @@
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
     register: rds_info
-    delay: 10
+    delay: 20
     retries: 60
-    until: rds_info.instance.endpoint is defined
+    until: rds_info.instance.endpoint is string
 
 
   - name: DEBUG RDS INSTANCE OUT

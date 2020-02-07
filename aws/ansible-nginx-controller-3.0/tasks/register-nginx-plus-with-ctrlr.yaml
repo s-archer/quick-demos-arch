@@ -1,0 +1,74 @@
+---
+
+- name: GET CONTROLLER PUBLIC IP
+  set_fact:
+    ctrlr_pub_ip: "{% for host in groups['nginx'] %}{{ hostvars[host]['inventory_hostname'] }}{% endfor %}"
+
+
+- name: GET CONTROLLER PRIVATE IP
+  set_fact:
+    ctrlr_priv_ip: "{% for host in groups['nginx'] %}{{ hostvars[host]['private_ip_address'] }}{% endfor %}"
+
+
+- name: GET CONTROLLER API KEY (LOGIN)
+  uri:
+    url: "https://{{ ctrlr_pub_ip }}/api/v1/platform/login"
+    method: "POST"
+    body:
+      credentials:
+        type: "BASIC"
+        username: "{{ nginx_email }}"
+        password: "{{ nginx_pass }}"
+    body_format: json
+    return_content: yes
+    status_code: 204
+    validate_certs: false
+  register: login_result
+
+
+- name: GET CONTROLLER API KEY 
+  uri:
+    url: "https://{{ ctrlr_pub_ip }}/api/v1/platform/global"
+    method: "GET"
+    return_content: yes
+    status_code: 200
+    validate_certs: false
+    headers:
+      Cookie: "{{login_result.set_cookie}}"
+  register: ctrlr_out
+
+
+- name: SET FACT CONTROLLER API KEY
+  set_fact:
+    api_key: "{{ctrlr_out.json.currentStatus.agentSettings.apiKey}}"
+
+
+- name: DOWNLOAD LATEST NGINX CONTROLLER INSTALL FILE
+  get_url:
+    url: "https://{{ ctrlr_priv_ip }}:8443/1.4/install/controller/"
+    dest: /home/centos/install.sh
+    validate_certs: no
+    force: yes
+  register: controller_return
+
+
+- name: RUN THE CONTROLLER REGISTRATION INSTALL SCRIPT
+  shell: "API_KEY={{api_key}} sh ./install.sh -y"
+  args:
+    chdir: /home/centos
+  register: agent_install
+  become: yes
+
+
+- name: OUTPUT THE CONTROLLER REGISTRATION INSTALL STATUS
+  debug:
+    var: agent_install.stdout_lines
+
+
+- name: RESTART NGINX PLUS
+  service:
+    name: nginx
+    state: reloaded
+  become: yes
+
+...

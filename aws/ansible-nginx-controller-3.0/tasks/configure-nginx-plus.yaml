@@ -1,0 +1,77 @@
+---
+
+- name: CREATE NGINX DIRECTORY
+  file:
+    path: /etc/ssl/nginx
+    state: directory
+  become: yes
+
+
+- name: COPY NGINX PLUS KEYS TO CENTOS
+  copy:
+    src: ../../../creds/nginx/plus/nginx-repo.crt
+    dest: /etc/ssl/nginx/
+    owner: root
+    mode: '0644'
+  become: yes
+
+
+- name: COPY NGINX PLUS KEYS TO CENTOS
+  copy:
+    src: ../../../creds/nginx/plus/nginx-repo.key
+    dest: /etc/ssl/nginx/
+    owner: root
+    mode: '0644'
+  become: yes
+
+
+- name: DOWNLOAD LATEST NGINX REPO FILE
+  yum_repository:
+    name: nginx-plus
+    baseurl: >-
+      https://plus-pkgs.nginx.com/centos/$releasever/$basearch/
+    description: NGINX Plus Repository
+    sslclientcert: /etc/ssl/nginx/nginx-repo.crt
+    sslclientkey: /etc/ssl/nginx/nginx-repo.key
+    enabled: yes
+    gpgcheck: yes
+  become: yes
+
+
+- name: YUM INSTALL NGINX WGET & LATEST TRUSTED CA FILES
+  yum:
+    name: 
+      - nginx-plus
+      - ca-certificates
+      - wget
+    lock_timeout: 360
+    state: latest
+  become: yes
+
+
+- name: EXAMPLE - YUM INSTALL AN NGINX DYNAMIC MODULE (JAVASCRIPT)
+  # List of Dynamic Modules https://www.nginx.com/products/nginx/modules/
+  yum:
+    name: nginx-plus-module-njs
+    state: latest
+  become: yes
+
+
+- name: EXAMPLE - LOAD NGINX DYNAMIC MODULE (JAVASCRIPT)
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    insertbefore: BOF
+    line: "{{ item }}"
+  with_items:
+    - load_module modules/ngx_http_js_module.so;
+    - load_module modules/ngx_stream_js_module.so;
+  become: yes
+
+
+- name: RESTART NGINX PLUS
+  service:
+    name: nginx
+    state: reloaded
+  become: yes
+  
+...

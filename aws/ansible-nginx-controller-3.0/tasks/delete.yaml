@@ -19,11 +19,12 @@
   ec2:
     state: absent
     wait: yes
-    instance_ids: "{{ ec2_instance_facts.instances[0].instance_id }}"
+    instance_ids: "{{ item.instance_id }}"
     instance_tags:
       automated: "{{ automation_tool }}"
       stack: "{{ stack_name }}"
       UK-SE: "{{ uk_se_name }}"
+  loop: "{{ ec2_instance_facts.instances }}"
 
 
 - name: DELETE POSTGRES SQL IN AWS RDS

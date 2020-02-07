@@ -1,6 +1,6 @@
 ---
 #------------------------------------------------------------------------------
-# BUILD INFRASTRUCTURE
+# BUILD AWS INFRASTRUCTURE
 #------------------------------------------------------------------------------
 
 - name: PROVISION VPC SUBNETS & CENTOS INSTANCES
@@ -47,7 +47,54 @@
     ansible_user: centos
 
   tasks:
-    - include_tasks: ./tasks/install-nginx.yaml
+    - include_tasks: ./tasks/install-nginx-controller.yaml
     - include_tasks: ./tasks/outputs.yaml
 
+#------------------------------------------------------------------------------
+# DEPLOY NGINX PLUS EC2 AMI
+#------------------------------------------------------------------------------
+
+- name: PROVISION VPC SUBNETS & CENTOS INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+  
+  vars_files:
+    - ../../../creds/creds.yaml
+    - ./vars/vars.yaml
+    - ./vars/id.yaml
+
+  tasks:
+    - include_tasks: ./tasks/deploy-nginx-plus-ami.yaml
+
+#------------------------------------------------------------------------------
+# CONFIGURE NGINX PLUS INSTANCE AND REGISTER CONTROLLER
+#------------------------------------------------------------------------------
+
+- name: INSTALL NGINX ON CENTOS INSTANCES
+  hosts: nginxplus
+  #connection: local # need to connect directly to nginx instances
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+  
+  vars_files:
+    - ../../../creds/creds.yaml
+    - ./vars/vars.yaml
+    - ./vars/id.yaml
+
+  vars:
+    ansible_user: centos
+
+  tasks:
+    - include_tasks: ./tasks/configure-nginx-plus.yaml
+    - include_tasks: ./tasks/register-nginx-plus-with-ctrlr.yaml
 ...

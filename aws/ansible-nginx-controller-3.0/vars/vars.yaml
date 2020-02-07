@@ -14,7 +14,7 @@
 # Finally, do not use spaces or unusual characters in the variable values!
 #
     uk_se_name: arch
-    stack_name: "{{ uk_se_name }}-ansible-nginx-demo-build"
+    stack_name: "{{ uk_se_name }}-nginx-demo"
     
     aws_region: eu-west-2
     subnet_start: "10.1"
