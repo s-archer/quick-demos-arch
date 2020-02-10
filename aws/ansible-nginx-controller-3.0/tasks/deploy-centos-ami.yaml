@@ -42,6 +42,11 @@
   - name: OUTPUT PUBLIC IP
     debug:
       msg: "{{ ec2.instances[0].public_ip }}"
+  
+
+  - name: OUTPUT PRIVATE IP
+    debug:
+      msg: "{{ ec2.instances[0].private_ip }}"
 
 
   - name: WAIT FOR SSH ACCESS - CHECK EVERY 10 (MAX 600)
@@ -55,9 +60,9 @@
       msg: "Failed to detect SSH port open"
 
 
-#  - name: ADD CENTOS TO GROUP NGINX
-#    add_host:
-#      name: "{{ ec2.instances[0].public_ip }}"
-#      groups: nginx
-
+  - name: ADD CENTOS TO GROUP NGINX
+    add_host:
+      name: "{{ ec2.instances[0].public_ip }}"
+      groups: nginx
+      var_ctrlr_priv_ip: "{{ ec2.instances[0].private_ip }}"
 ...

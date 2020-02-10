@@ -50,9 +50,9 @@
       msg: "Failed to detect SSH port open"
 
 
-#  - name: ADD CENTOS TO GROUP NGINX
-#    add_host:
-#      name: "{{ ec2.instances[0].public_ip }}"
-#      groups: nginxplus
+  - name: ADD CENTOS TO GROUP NGINX
+    add_host:
+      name: "{{ ec2.instances[0].public_ip }}"
+      groups: nginxplus
 
 ...

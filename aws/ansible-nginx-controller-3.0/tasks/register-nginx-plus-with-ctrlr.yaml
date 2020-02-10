@@ -5,9 +5,9 @@
     ctrlr_pub_ip: "{% for host in groups['nginx'] %}{{ hostvars[host]['inventory_hostname'] }}{% endfor %}"
 
 
-- name: GET CONTROLLER PRIVATE IP
+- name: GET CONTROLLER PUBLIC IP
   set_fact:
-    ctrlr_priv_ip: "{% for host in groups['nginx'] %}{{ hostvars[host]['private_ip_address'] }}{% endfor %}"
+    ctrlr_priv_ip: "{% for host in groups['nginx'] %}{{ hostvars[host]['var_ctrlr_priv_ip'] }}{% endfor %}"
 
 
 - name: GET CONTROLLER API KEY (LOGIN)
