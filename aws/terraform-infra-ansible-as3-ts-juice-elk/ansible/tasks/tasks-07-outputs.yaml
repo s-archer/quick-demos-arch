@@ -1,0 +1,61 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+- name: CHECK IF KABANA IS UP
+  wait_for:
+    host: "{{ elk_pub_ip }}"
+    port: 8008
+    delay: 0
+    sleep: 10
+    connect_timeout: 5
+    timeout: 600
+    msg: "Failed to detect Kibana port 8008 open"
+    
+
+- name: OUTPUT HTTPS LINK
+  debug:
+    msg: "You should now be able to login to the BIG-IP on https://{{ inventory_hostname }}"
+  
+
+- name: OUTPUT HTTPS LINK
+  debug:
+    msg: "You should now be able to login to the APPLICATION on http://{{ eip2.results[1].public_ip }}"
+
+
+- name: SEND NOTIFICATION TO SLACK
+  slack:
+    token: TQJGFGSVD/BR2D7AN06/2Bsc8hKCUlokflbqPDiKAzLP
+    attachments:
+      - text: 'You should now be able to login to the demo deployment\n'
+        color: '#36a64f'
+        pretext: Ansible Automation Notification
+        title: Deployment Complete
+        author_name: "Stephen Archer"
+        author_icon: 'https://www.f5.com/etc.clientlibs/base/clientlibs/base-resources/resources/logos/favicon-32x32.png'
+        fields:
+          - title: OWASP Juice Shop App Link
+            value: "http://{{ eip2.results[1].public_ip }}"
+            short: false
+          - title: BIG-IP Mgmt Link
+            value: "https://{{ inventory_hostname }}"
+            short: false
+          - title: ELK Stack Kibana Dashboard
+            value: "http://{{ elk_pub_ip }}:8008 (NOTE: Takes a few mins to become available). elastic:changeme"
+            short: false
+          - title: ELK Stack Elastic API
+            value: "http://{{ elk_pub_ip }}:9200 (API!)"
+            short: false
+          - title: CentOS NGINX Juice SSH
+            value: "ssh centos@{{ juice_pub_ip }}"
+            short: false
+          - title: CentOS ELK Stack SSH
+            value: "ssh centos@{{ elk_pub_ip }}"
+            short: false
+  delegate_to: localhost
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

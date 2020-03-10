@@ -1,0 +1,89 @@
+---
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+- name: CHECK IF ELASTIC IS UP
+  wait_for:
+    host: "{{ elk_pub_ip }}"
+    port: 9200
+    delay: 0
+    sleep: 10
+    connect_timeout: 5
+    timeout: 600
+    msg: "Failed to detect Elastic port 9200 open"
+    
+
+- name: CREATE ELASTIC INDEX
+  uri:
+    url: "http://{{ elk_pub_ip }}:9200/testindex/"
+    method: PUT
+    force_basic_auth: yes
+    user: "{{ elastic_user }}"
+    password: "{{ elastic_pass }}"
+    #status_code: 200
+    #timeout: 120
+    validate_certs: no
+  register: result
+  #until: result.status == 200
+  #retries: 60
+  #delay: 10
+  ignore_errors: true
+
+
+- name: CHECK IF INDEX IS CREATED
+  uri:
+    url: "http://{{ elk_pub_ip }}:9200/testindex/"
+    method: GET
+    force_basic_auth: yes
+    user: "{{ elastic_user }}"
+    password: "{{ elastic_pass }}"
+    #status_code: 200
+    #timeout: 120
+    validate_certs: no
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 10
+
+
+- name: MODIFY ELASTIC INDEX
+  uri:
+    url: "http://{{ elk_pub_ip }}:9200/testindex/_settings"
+    method: PUT
+    force_basic_auth: yes
+    user: "{{ elastic_user }}"
+    password: "{{ elastic_pass }}"
+    body: "{{ lookup('file', '../templates/elastic-index-config.j2', split_lines=False) }}"
+    body_format: json
+    #status_code: 200
+    #timeout: 120
+    validate_certs: no
+  register: result
+  ignore_errors: true
+
+
+- name: CREATE INDEX PATTERN AND DASHBOARD
+  uri:
+    url: "http://{{ elk_pub_ip }}:9200/api/kibana/dashboards/import?exclude=index-pattern"
+    method: POST
+    headers:
+      kbn-xsrf: "true"
+    force_basic_auth: yes
+    user: "{{ elastic_user }}"
+    password: "{{ elastic_pass }}"
+    body: "{{ lookup('file', '../files/kibana-dashboard-arch.json', split_lines=False) }}"
+    body_format: json
+    status_code: 200
+    #timeout: 120
+    validate_certs: no
+  register: _result
+  until: _result.status == 200
+  retries: 60 
+  delay: 10
+
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...

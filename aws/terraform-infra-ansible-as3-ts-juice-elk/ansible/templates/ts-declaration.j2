@@ -1,0 +1,54 @@
+{
+"class": "Telemetry",
+	"controls": { 
+		"class": "Controls",
+		"logLevel": "debug"
+	},
+	"My_System": {
+        "class": "Telemetry_System",
+        "systemPoller": {
+            "interval": 60
+        }
+    },
+    "My_Listener": {
+        "class": "Telemetry_Listener",
+        "port": 6514
+    },
+    "ElasticSearch_Consumer": {
+        "class": "Telemetry_Consumer",
+		"type": "ElasticSearch",
+		"host": "{{ elk_priv_ip }}",
+		"port": "9200",
+		"protocol": "http",
+		"allowSelfSignedCert": false,
+		"path": "/",
+		"index": "testindex",
+		"dataType": "f5.telemetry",
+		"apiVersion": "6.5",
+		"username": "{{ elastic_user }}",
+		"passphrase": {
+        	"cipherText": "{{ elastic_pass }}"
+        }
+    },
+	"Beacon_Consumer": { 
+		"class": "Telemetry_Consumer",
+		"type": "Generic_HTTP",
+		"host": "ingestion.ovr.prd.f5aas.com",
+		"protocol": "https",
+		"port": 50443,
+		"path": "/beacon/v1/ingest-telemetry-streaming",
+		"method": "POST",
+		"enable": true,
+		"trace": true,
+		"headers": [ 
+			{ 
+				"name": "grpc-metadata-x-f5-ingestion-token",
+				"value": "`>@/passphrase`"
+			}
+		],
+		"passphrase": { 
+			"cipherText": "{{ f5_beacon_token }}"
+		}
+	},
+	"schemaVersion": "1.0.0"
+}
