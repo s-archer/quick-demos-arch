@@ -13,6 +13,16 @@ variable "username" {
   default = "admin"
 }
 
+variable "password" { 
+  description = "big-ip password"
+  default = "PasswordABC123!!"
+}
+
+variable "address" { 
+  description = "big-ip address"
+  default = "https://10.1.1.1"
+}
+
 variable "port" { 
   description = "name of preconfigured AWS secret, containing password"
   default = "8443"

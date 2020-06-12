@@ -12,7 +12,8 @@
           "class": "Tenant",
           "arch_A1": {
               "class": "Application",
-              "app": {
+              "template": "http",
+              "serviceMain": {
                   "class": "Service_HTTP",
                   "virtualAddresses": [
                       "10.10.1.10"
