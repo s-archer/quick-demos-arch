@@ -24,11 +24,48 @@
     register: postman_result
 
 
+  - name: GET AND INSTALL NEW GOOGLE KEY
+    shell:
+      cmd: wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+
+
+  - name: SLEEP FOR 10 MINS FOR AUTO UPDATES TO COMPLETE
+    wait_for:
+      timeout: 600
+
+
   - name: INSTALL LATEST ANSIBLE
     apt:
       name: ansible
       state: latest
-      update_cache: no
+      update_cache: yes
+    register: apt_status
+    until: apt_status is success
+    delay: 10
+    retries: 100
+
+
+  - name: SEND NOTIFICATION TO SLACK
+    slack:
+      token: TQJGFGSVD/BR2D7AN06/2Bsc8hKCUlokflbqPDiKAzLP
+      attachments:
+        - text: 'You should now be able to login to the VDI instances\r\n'
+          color: '#36a64f'
+          pretext: Ansible Automation Notification
+          title: VDI Deployment Complete
+          author_name: "Stephen Archer"
+          author_icon: 'https://www.f5.com/etc.clientlibs/base/clientlibs/base-resources/resources/logos/favicon-32x32.png'
+          fields:
+            - title: VDI LINK
+              value: "You should now be able to login to the UBUNTU on https://{{ inventory_hostname }}\r\n"
+              short: false
+            - title: VDI USER
+              value: "ubuntu\r\n"
+              short: false
+            - title: VDI PASSWORD
+              value: "{{ id }}\r\n"
+              short: false
+    loop: "{{ groups['launched_ec2s'] }}"
 
 
 #------------------------------------------------------------------------------

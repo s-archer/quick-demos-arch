@@ -163,11 +163,12 @@
       image: ami-03581e6142a3e1a81
       wait: yes
       group: "{{ sg_name }}"
-      count: 3
+      count: 1
       vpc_subnet_id: "{{ vpc_subnet_ids.mgmt_a }}"
       assign_public_ip: yes
       instance_tags:
         type: ubuntu-workstation
+        name: "autows-vdi-{{uk_se_name}}"
         automated: "{{ automation_tool }}"
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
@@ -194,6 +195,7 @@
   - name: ADD NEW INSTANCES TO HOST GROUP
     local_action: add_host hostname={{ item.public_ip }}
                   groupname=launched_ec2s
+                  id={{ item.id }}
     with_items: "{{ ec2_facts.instances }}"
 
 

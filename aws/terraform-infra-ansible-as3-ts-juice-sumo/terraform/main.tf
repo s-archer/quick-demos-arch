@@ -35,7 +35,7 @@ resource "aws_vpc" "main" {
 
 # CREATE SUBNET FOR MGMT
 resource "aws_subnet" "mgmt" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
   availability_zone = "eu-west-2a"
 
@@ -48,7 +48,7 @@ resource "aws_subnet" "mgmt" {
 
 # CREATE SUBNET FOR PUBLIC
 resource "aws_subnet" "public" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.2.0/24"
   availability_zone = "eu-west-2a"
 
@@ -61,7 +61,7 @@ resource "aws_subnet" "public" {
 
 # CREATE SUBNET FOR PRIVATE
 resource "aws_subnet" "private" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.3.0/24"
   availability_zone = "eu-west-2a"
 
@@ -76,7 +76,7 @@ resource "aws_subnet" "private" {
 resource "aws_security_group" "mgmt" {
   name        = "mgmt"
   description = "Allow TLS & SSH inbound traffic, and any outbound"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 22
@@ -107,7 +107,7 @@ resource "aws_security_group" "mgmt" {
 resource "aws_security_group" "public" {
   name        = "public"
   description = "Allow HTTP & HTTPS inbound traffic, and any outbound"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 80
@@ -138,7 +138,7 @@ resource "aws_security_group" "public" {
 resource "aws_security_group" "private" {
   name        = "private"
   description = "Allow any inbouns/outbound within VPC"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 22
@@ -179,7 +179,7 @@ resource "aws_security_group" "private" {
 
 # CREATE INTERNET GATEWAY
 resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "main"
@@ -190,11 +190,11 @@ resource "aws_internet_gateway" "gw" {
 
 # CREATE DEFAULT ROUTE TABLE FOR VPC
 resource "aws_route_table" "main-rt" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
+    gateway_id = aws_internet_gateway.gw.id
   }
 
   tags = {
@@ -206,22 +206,22 @@ resource "aws_route_table" "main-rt" {
 
 # ASSOCIATE ROUTE TABLE WITH MGMT SUBNET
 resource "aws_route_table_association" "mgmt" {
-  subnet_id      = "${aws_subnet.mgmt.id}"
-  route_table_id = "${aws_route_table.main-rt.id}"
+  subnet_id      = aws_subnet.mgmt.id
+  route_table_id = aws_route_table.main-rt.id
 }
 
 
 # ASSOCIATE ROUTE TABLE WITH PUBLIC SUBNET
 resource "aws_route_table_association" "public" {
-  subnet_id      = "${aws_subnet.public.id}"
-  route_table_id = "${aws_route_table.main-rt.id}"
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.main-rt.id
 }
 
 
 # ASSOCIATE ROUTE TABLE WITH PRIVATE SUBNET
 resource "aws_route_table_association" "private" {
-  subnet_id      = "${aws_subnet.private.id}"
-  route_table_id = "${aws_route_table.main-rt.id}"
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.main-rt.id
 }
 
 
@@ -239,7 +239,7 @@ module bigip {
   vpc_mgmt_subnet_ids = [aws_subnet.mgmt.id]
   vpc_public_subnet_ids = [aws_subnet.public.id]
   # NEED TO ADD BELOW TO REPLACE DEFAULT IN MODULE
-  f5_ami_search_name = "F5 Networks BIGIP-14.* PAYG - Best 25*"
+  f5_ami_search_name = "F5*BIGIP-14.1.2.3* PAYG-Best 200Mbps*"
 
 }
 

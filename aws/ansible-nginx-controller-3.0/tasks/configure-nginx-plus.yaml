@@ -29,7 +29,7 @@
   yum_repository:
     name: nginx-plus
     baseurl: >-
-      https://plus-pkgs.nginx.com/centos/$releasever/$basearch/
+      https://cs.nginx.com/static/files/nginx-plus-7.4.repo
     description: NGINX Plus Repository
     sslclientcert: /etc/ssl/nginx/nginx-repo.crt
     sslclientkey: /etc/ssl/nginx/nginx-repo.key

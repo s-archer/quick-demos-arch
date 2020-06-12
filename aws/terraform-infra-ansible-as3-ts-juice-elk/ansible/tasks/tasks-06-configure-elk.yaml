@@ -16,7 +16,7 @@
 
 - name: CREATE ELASTIC INDEX
   uri:
-    url: "http://{{ elk_pub_ip }}:9200/testindex/"
+    url: "http://{{ elk_pub_ip }}:9200/f5index/"
     method: PUT
     force_basic_auth: yes
     user: "{{ elastic_user }}"
@@ -33,7 +33,7 @@
 
 - name: CHECK IF INDEX IS CREATED
   uri:
-    url: "http://{{ elk_pub_ip }}:9200/testindex/"
+    url: "http://{{ elk_pub_ip }}:9200/f5index/"
     method: GET
     force_basic_auth: yes
     user: "{{ elastic_user }}"
@@ -49,7 +49,7 @@
 
 - name: MODIFY ELASTIC INDEX
   uri:
-    url: "http://{{ elk_pub_ip }}:9200/testindex/_settings"
+    url: "http://{{ elk_pub_ip }}:9200/f5index/_settings"
     method: PUT
     force_basic_auth: yes
     user: "{{ elastic_user }}"
@@ -65,7 +65,9 @@
 
 - name: CREATE INDEX PATTERN AND DASHBOARD
   uri:
-    url: "http://{{ elk_pub_ip }}:9200/api/kibana/dashboards/import?exclude=index-pattern"
+    # Note that for dash import/export, it uses the elastic port for the Kibana API!?!  
+    # Took a while to figure thaout out.
+    url: "http://{{ elk_pub_ip }}:5601/api/kibana/dashboards/import?force=true"
     method: POST
     headers:
       kbn-xsrf: "true"
@@ -77,10 +79,11 @@
     status_code: 200
     #timeout: 120
     validate_certs: no
-  register: _result
-  until: _result.status == 200
-  retries: 60 
-  delay: 10
+  #register: _result
+  #until: _result.status == 200
+  #retries: 60 
+  #delay: 10
+  ignore_errors: true
 
 
 #------------------------------------------------------------------------------
