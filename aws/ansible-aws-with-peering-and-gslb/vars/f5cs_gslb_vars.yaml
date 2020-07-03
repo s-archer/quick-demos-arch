@@ -12,7 +12,7 @@
 # Finally, do not use spaces or unusual characters in the variable values!
 #
 
-gslb_zone: "gslb.archf5.com"
+ gslb_zone: "gslb.archf5.com"
 gslb_zone_a_record: "arcadia"
 gslb_service_name: "arch arcadia finance demo"
 gslb_service_name_short: "arch_arcadia_demo"
