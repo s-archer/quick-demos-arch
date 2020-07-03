@@ -1,3 +1,4 @@
+
 resource "random_string" "password" {
   length  = 10
   special = false
@@ -10,6 +11,16 @@ data "aws_ami" "f5_ami" {
   filter {
     name   = "name"
     values = [var.f5_ami_search_name]
+  }
+}
+
+data "template_file" "f5_init" {
+  template = file("../scripts/f5_onboard.tmpl")
+
+  vars = {
+    password = "${random_string.password.result}"
+    libs_dir     = "${var.libs_dir}",
+    onboard_log  = "${var.onboard_log}",
   }
 }
 
@@ -31,10 +42,10 @@ resource "aws_instance" "f5-1" {
   }
   
   tags = {
-    Name = "${var.prefix}-f5"
-    Env  = "consul"
+    Name  = "${var.prefix}-f5"
+    Env   = "consul"
+    UK-SE = var.uk_se_name
   }
-
 }
 
 resource "aws_instance" "f5-2" {
@@ -59,14 +70,4 @@ resource "aws_instance" "f5-2" {
     Env  = "consul"
   }
 
-}
-
-data "template_file" "f5_init" {
-  template = file("../scripts/f5_onboard.tmpl")
-
-  vars = {
-    password = "${random_string.password.result}"
-    libs_dir     = "${var.libs_dir}",
-    onboard_log  = "${var.onboard_log}",
-  }
 }

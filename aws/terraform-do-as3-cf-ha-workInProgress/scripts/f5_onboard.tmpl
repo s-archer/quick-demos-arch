@@ -46,21 +46,48 @@ else
   tmsh modify auth user admin password $pwd
 fi
 
-### DOWNLOAD ONBOARDING PKGS
+#PATCH RCE VULNERABILITY
+curl -u admin:$pwd -k https://localhost/mgmt/tm/sys/httpd -X PATCH -d '{"include":"\n <LocationMatch \\\".*\\\\.\\\\.;.*\\\">\n Redirect 404 /\n </LocationMatch>\n "}' -H content-type:application/json
+tmsh save sys config
+tmsh restart sys service httpd
+
+
+##########################
+# WORKAROUND TO INCREASE 
+# MEMORY, TO HANDLE ALL 
+# AUTOMATION TOOLCHAIN 
+# PKGS
+##########################
+date
+wait_for_bigip
+# Modify restjavad memory
+echo "Increasing extramb for restjavad"
+tmsh modify sys db provision.extramb value 1000
+tmsh modify sys db restjavad.useextramb value true
+tmsh save sys config
+tmsh restart sys service restjavad
+wait_for_bigip
+date
+##########################
+
+### DOWNLOAD AUTOMATION TOOLCHAIN PKGS
 # Could be pre-packaged or hosted internally
 mkdir -p ${libs_dir}
 
 DO_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-declarative-onboarding/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
 DO_FN=$(basename "$DO_URL")
+
 AS3_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-appsvcs-extension/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
 AS3_FN=$(basename "$AS3_URL")
-FAST_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-appsvcs-templates/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
-FAST_FN=$(basename "$FAST_URL")
+
 TS_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-telemetry-streaming/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
 TS_FN=$(basename "$TS_URL")
+
 CFE_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-cloud-failover-extension/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
 CFE_FN=$(basename "$CFE_URL")
 
+#### FAST_URL=$(curl -s https://api.github.com/repos/F5Networks/f5-appsvcs-templates/releases/latest | grep "f.*rpm" | sed -n 2p | cut -d : -f 2,3 | tr -d \")
+#### FAST_FN=$(basename "$FAST_URL")
 
 # Download the latest versions of the Automation Toolchain Components
 echo -e "\n"$(date) "Download DO Pkg"
@@ -69,14 +96,14 @@ curl -L -o ${libs_dir}/$DO_FN $DO_URL
 echo -e "\n"$(date) "Download AS3 Pkg"
 curl -L -o ${libs_dir}/$AS3_FN $AS3_URL
 
-echo -e "\n"$(date) "Download FAST Pkg"
-curl -L -o ${libs_dir}/$FAST_FN $FAST_URL
-
 echo -e "\n"$(date) "Download TS Pkg"
 curl -L -o ${libs_dir}/$TS_FN $TS_URL
 
 echo -e "\n"$(date) "Download CFE Pkg"
 curl -L -o ${libs_dir}/$CFE_FN $CFE_URL
+
+#### echo -e "\n"$(date) "Download FAST Pkg"
+#### curl -L -o ${libs_dir}/$FAST_FN $FAST_URL
 
 sleep 20
 
@@ -93,11 +120,6 @@ DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/download
 echo -e "\n"$(date) "Install AS3 Pkg"
 restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
 
-# Install AS3 Templates (FAST) Pkg
-DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/downloads/$FAST_FN\"}"
-echo -e "\n"$(date) "Install FAST Pkg"
-restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
-
 # Install TS Pkg
 DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/downloads/$TS_FN\"}"
 echo -e "\n"$(date) "Install TS Pkg"
@@ -108,6 +130,11 @@ DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/download
 echo -e "\n"$(date) "Install CFE Pkg"
 restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
 
+## Install AS3 Templates (FAST) Pkg
+#DATA="{\"operation\":\"INSTALL\",\"packageFilePath\":\"/var/config/rest/downloads/$FAST_FN\"}"
+#echo -e "\n"$(date) "Install FAST Pkg"
+#restcurl -X POST "shared/iapp/package-management-tasks" -d $DATA
+
 # Disable Phone Home to workaround bug in DO 1.9.  Should be fixed in 1.10
 tmsh modify sys software update auto-phonehome disabled
 tmsh save sys config
@@ -117,6 +144,9 @@ echo "FINISHED STARTUP SCRIPT"
 
 ### Clean up
 rm /config/cloud/startup-script.sh 
+rm /var/config/rest/downloads/*.rpm
+rm ${libs_dir}/*.rpm
+
 EOF
 
 # Now run in the background to not block startup

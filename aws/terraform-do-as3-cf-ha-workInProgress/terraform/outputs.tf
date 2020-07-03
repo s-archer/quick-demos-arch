@@ -23,9 +23,9 @@ output "f5-2_ui" {
 }
 
 output "f5-1_ssh" {
-  value = "ssh admin@${aws_eip.f5-1.public_ip} -i ${aws_key_pair.demo.key_name}.pem"
+  value = "ssh admin@${aws_eip.f5-1.public_ip} -i ssh-key.pem"
 }
 
 output "f5-2_ssh" {
-  value = "ssh admin@${aws_eip.f5-2.public_ip} -i ${aws_key_pair.demo.key_name}.pem"
+  value = "ssh admin@${aws_eip.f5-2.public_ip} -i ssh-key.pem"
 } 

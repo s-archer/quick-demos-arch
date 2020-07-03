@@ -1,11 +1,16 @@
 variable "prefix" {
   description = "prefix for resources created"
-  default     = "hashi-f5-demo"
+  default     = "arch-hashi-f5-demo"
+}
+
+variable "uk_se_name" {
+  description = "UK SE name tag"
+  default     = "arch"
 }
 
 variable "f5_ami_search_name" { 
   description = "search term to find the appropriate F5 AMI for current region"
-  default = "F5*BIGIP-14.1.2.3*Good*25Mbps*"
+  default = "F5*BIGIP-14.1*Good*25Mbps*"
 }
 
 variable "username" { 
