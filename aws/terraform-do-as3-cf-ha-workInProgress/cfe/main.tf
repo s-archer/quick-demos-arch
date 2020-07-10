@@ -27,12 +27,12 @@ provider "bigip" {
 
 # deploy application using as3
 resource "bigip_as3" "arch-f5-1" {
-  as3_json    = file("nginx.json")
+  as3_json    = file("arch.json")
   provider = bigip.f5-1
   tenant_filter = "arch"
 }
 resource "bigip_as3" "arch-f5-2" {
-  as3_json    = file("nginx.json")
+  as3_json    = file("arch.json")
   provider = bigip.f5-2
   tenant_filter = "arch"
 }

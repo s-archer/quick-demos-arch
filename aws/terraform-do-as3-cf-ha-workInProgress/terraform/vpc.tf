@@ -6,24 +6,15 @@ module "vpc" {
   cidr = "10.0.0.0/16"
 
 
-  azs            = ["eu-west-2a"]
-  public_subnets = ["10.0.0.0/24"]
+  azs             = ["eu-west-2a"]
+  public_subnets  = ["10.0.0.0/24", "10.0.1.0/24","10.0.10.0/24", "10.0.11.0/24"]
+  private_subnets = ["10.0.2.0/24", "10.0.3.0/24","10.0.12.0/24", "10.0.13.0/24"]
 
   enable_nat_gateway = true
 
   tags = {
     Environment = "F5"
   }
-}
-
-resource "aws_eip" "f5-1" {
-  instance = aws_instance.f5-1.id
-  vpc      = true
-}
-
-resource "aws_eip" "f5-2" {
-  instance = aws_instance.f5-2.id
-  vpc      = true
 }
 
 resource "aws_security_group" "f5" {
@@ -63,6 +54,120 @@ resource "aws_security_group" "f5" {
     to_port     = 8443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "f5_internal" {
+  name   = "${var.prefix}-f5_internal"
+  vpc_id = module.vpc.vpc_id
+
+    ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_security_group" "nginx" {
+  name   = "${var.prefix}-nginx"
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+    ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+    ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    from_port   = 8300
+    to_port     = 8300
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    from_port   = 8301
+    to_port     = 8301
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "consul" {
+  name   = "${var.prefix}-consul"
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8500
+    to_port     = 8500
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8300
+    to_port     = 8300
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    from_port   = 8301
+    to_port     = 8301
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {

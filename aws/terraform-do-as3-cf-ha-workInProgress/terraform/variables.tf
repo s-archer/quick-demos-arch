@@ -10,7 +10,12 @@ variable "uk_se_name" {
 
 variable "f5_ami_search_name" { 
   description = "search term to find the appropriate F5 AMI for current region"
-  default = "F5*BIGIP-14.1*Good*25Mbps*"
+  default = "F5*BIGIP-15.1.0.4*Better*25Mbps*"
+}
+
+variable "aws_secret_name" { 
+  description = "name of secret created in aws secrets manage"
+  default = "my_bigip_password"
 }
 
 variable "username" { 
@@ -20,17 +25,17 @@ variable "username" {
 
 variable "password" { 
   description = "big-ip password"
-  default = "PasswordABC123!!"
+  default = ""
 }
 
 variable "address" { 
   description = "big-ip address"
-  default = "https://10.1.1.1"
+  default = ""
 }
 
 variable "port" { 
-  description = "name of preconfigured AWS secret, containing password"
-  default = "8443"
+  description = "big-ip port, 443 default, use 8443 for single NIC"
+  default = "443"
 }
 
 variable "libs_dir" {
