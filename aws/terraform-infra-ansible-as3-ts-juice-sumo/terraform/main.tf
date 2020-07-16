@@ -239,7 +239,7 @@ module bigip {
   vpc_mgmt_subnet_ids = [aws_subnet.mgmt.id]
   vpc_public_subnet_ids = [aws_subnet.public.id]
   # NEED TO ADD BELOW TO REPLACE DEFAULT IN MODULE
-  f5_ami_search_name = "F5*BIGIP-14.1.2.3* PAYG-Best 200Mbps*"
+  f5_ami_search_name = "F5*BIGIP-14.1.2.6* PAYG-Best 200Mbps*"
 
 }
 

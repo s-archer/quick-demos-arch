@@ -1,3 +1,4 @@
+# MGMT INTERFACE ---------------
 resource "aws_network_interface" "f5-1_eth0_mgmt" {
   subnet_id   = module.vpc.public_subnets[0]
   security_groups = [aws_security_group.f5.id]
@@ -10,23 +11,73 @@ resource "aws_network_interface" "f5-1_eth0_mgmt" {
 
 resource "aws_eip" "f5-1_eth0_mgmt" {
   network_interface = aws_network_interface.f5-1_eth0_mgmt.id
+  associate_with_private_ip = "10.0.0.101"
   vpc               = true
+
+  tags                      = {
+    Name                    = "${var.prefix}-1-mgmt"
+  }
+}
+
+# EXT INTERFACE ----------------
+
+variable "f5-1_eth1_1_ext_ips" {
+  description = "Self IP Plus secondary IPs for VIPS"
+  type        = list
+  default     = ["10.0.1.101","10.0.1.200","10.0.1.201"]
 }
 
 resource "aws_network_interface" "f5-1_eth1_1_ext" {
   subnet_id   = module.vpc.public_subnets[1]
   security_groups = [aws_security_group.f5.id]
-  private_ips = ["10.0.1.101"]
+  #private_ips = ["10.0.1.101"]
+  private_ips = var.f5-1_eth1_1_ext_ips
 
   tags = {
-    Name = "external_interface"
+    Name                      = "external_interface"
+    f5_cloud_failover_nic_map = "eth1_1_ext"
   }
 }
 
-resource "aws_eip" "f5-1_eth1_1_ext" {
+resource "aws_eip" "f5-1_eth1_1_ext_self" {
   network_interface = aws_network_interface.f5-1_eth1_1_ext.id
+  associate_with_private_ip = "10.0.1.101"
   vpc               = true
+
+  tags                      = {
+    Name                    = "${var.prefix}-1-ext-self"
+  }
 }
+
+resource "aws_eip" "f5-1_eth1_1_ext_vs0" {
+  network_interface         = aws_network_interface.f5-1_eth1_1_ext.id
+  associate_with_private_ip = "10.0.1.200"
+  vpc                       = true
+
+  tags                      = {
+    Name                    = "${var.prefix}-ext-vs0"
+    f5_cloud_failover_label = "mydeployment"
+    # In multi-az you need to specify both VIPs that might map to the EIP.
+    f5_cloud_failover_vips  = "10.0.1.200,10.0.11.200"
+  }
+
+}
+
+resource "aws_eip" "f5-1_eth1_1_ext_vs1" {
+  network_interface         = aws_network_interface.f5-1_eth1_1_ext.id
+  associate_with_private_ip = "10.0.1.201"
+  vpc                       = true
+
+  tags                      = {
+    Name                    = "${var.prefix}-ext-vs1"
+    f5_cloud_failover_label = "mydeployment"
+    # In multi-az you need to specify both VIPs that might map to the EIP.
+    f5_cloud_failover_vips  = "10.0.1.201,10.0.11.201"
+  }
+
+}
+
+# INT INTERFACE ----------------
 
 resource "aws_network_interface" "f5-1_eth1_2_int" {
   subnet_id   = module.vpc.private_subnets[0]
@@ -37,6 +88,8 @@ resource "aws_network_interface" "f5-1_eth1_2_int" {
     Name = "internal_interface"
   }
 }
+
+# ONBOARDING TEMPLATE  ---------
 
 data "template_file" "f5-1_init" {
   template = file("../scripts/f5_onboard.tmpl")
@@ -58,6 +111,8 @@ data "template_file" "f5-1_init" {
   }
 }
 
+# AMI INSTANCE ----------------
+
 resource "aws_instance" "f5-1" {
 
   ami = data.aws_ami.f5_ami.id
@@ -65,7 +120,8 @@ resource "aws_instance" "f5-1" {
   instance_type               = "m5.xlarge"
   user_data                   = data.template_file.f5-1_init.rendered
   key_name                    = aws_key_pair.demo.key_name
-  iam_instance_profile        = "arch-cfe-route-role"
+  #iam_instance_profile        = "arch-cfe-route-role"
+  iam_instance_profile        = aws_iam_instance_profile.cfe.name
   root_block_device { delete_on_termination = true }
 
   network_interface {
@@ -88,7 +144,7 @@ resource "aws_instance" "f5-1" {
   }
   
   tags = {
-    Name  = "${var.prefix}-f5"
+    Name  = "${var.prefix}-f5-1"
     Env   = "consul"
     UK-SE = var.uk_se_name
   }

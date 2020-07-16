@@ -87,7 +87,6 @@ else
   tmsh modify auth user admin password $pwd
 fi
 #############################
-### GET ATC VERSIONS & URLS
 ## IAPPS DIR FIX
 #############################
 # start modify appdata directory size
@@ -100,6 +99,9 @@ echo "done setting app directory size"
 tmsh save sys config
 # end modify appdata directory size
 
+#############################
+### GET ATC VERSIONS & URLS
+#############################
 ## set vars
 # constants
 rpmInstallUrl="/mgmt/shared/iapp/package-management-tasks"
@@ -184,6 +186,7 @@ do
     result=$(/usr/bin/curl -Lsk  $file -o /var/config/rest/downloads/$name)
     done
 done
+echo "DOWNLOADS COMPLETE"
 }
 # download the rpms
 getAtc
@@ -192,7 +195,9 @@ getAtc
 #############################
 ### INSTALL ATC PACKAGES
 #############################
+echo "INSTALL ATC PACKAGES"
 rpms=$(find $rpmFilePath -name "*.rpm" -type f)
+echo $rpms
 for rpm in $rpms
 do
   filename=$(basename $rpm)

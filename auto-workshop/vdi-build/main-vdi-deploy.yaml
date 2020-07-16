@@ -162,7 +162,7 @@
       image: ami-03581e6142a3e1a81
       wait: yes
       group: "{{ sg_name }}"
-      count: 1
+      count: 3
       vpc_subnet_id: "{{ vpc_subnet_ids.mgmt_a }}"
       assign_public_ip: yes
       instance_tags:

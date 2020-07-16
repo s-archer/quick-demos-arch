@@ -12,33 +12,6 @@
             "f5_cloud_failover_label": "mydeployment"
         }
     },
-    "failoverRoutes": {
-        "enabled": true,
-        "scopingTags": {
-            "f5_cloud_failover_label": "mydeployment"
-        },
-        "scopingAddressRanges": [
-            {
-                "range": "192.0.2.0/24"
-            },
-            {
-                "nextHopAddresses": {
-                    "discoveryType": "static",
-                    "items": [
-                        "192.0.2.10",
-                        "192.0.2.11"
-                    ]
-                }
-            }
-        ],
-        "defaultNextHopAddresses": {
-            "discoveryType": "static",
-            "items": [
-                "192.0.2.10",
-                "192.0.2.11"
-            ]
-        }
-    },
     "controls": {
         "class": "Controls",
         "logLevel": "info"
