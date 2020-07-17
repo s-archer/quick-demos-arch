@@ -1,0 +1,148 @@
+---
+#------------------------------------------------------------------------------
+# Playbook to DELETE VDIs. 
+#------------------------------------------------------------------------------
+
+- name: PROVISION VPC SUBNETS & F5 INSTANCES
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_REGION: "{{ aws_region }}"
+    
+
+#------------------------------------------------------------------------------
+# Load Variables from files 
+#------------------------------------------------------------------------------
+  
+  # You need to create a file named aws_creds.yaml (update path below) with the 
+  # following variables:
+  #
+  #  ec2_access_key: "--your-key-here--"
+  #  ec2_secret_key: "--your-secret-here--"
+  #
+  vars_files:
+    - ../../../creds/aws_creds.yaml
+    - ../../../creds/big_creds.yaml
+    - ./vars.yaml
+
+#------------------------------------------------------------------------------
+# End variables
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Start tasks
+#------------------------------------------------------------------------------
+
+  tasks:
+
+  - name: GET VDI FACTS
+    ec2_instance_facts:
+      filters:
+        "tag:type": ubuntu-workstation
+        "tag:name": "autows-vdi-{{uk_se_name}}"
+        "tag:UK-SE": "{{ uk_se_name }}"
+    register: vdi_facts
+
+
+  - name: OUTPUT VDI INSTANCE IDS
+    debug: 
+      msg: "{{ vdi_facts }} | to_nice_json"
+
+
+  - name: DESTROY VDIS
+    ec2:
+      instance_ids: "{{ item.instance_id }}"
+      state: absent
+    loop: "{{ vdi_facts.instances }}"
+
+
+  - name: GET VPC ID USING TAGS DEFINED DURING AUTOMATED BUILD
+    ec2_vpc_net_facts:
+      region: "{{ aws_region }}"
+      filters:
+        "tag:stack": "{{ stack_name }}"
+        "tag:UK-SE": "{{ uk_se_name }}"
+        "tag:automated": "{{ automation_tool }}"
+    register: vpc_facts
+    ignore_errors: True
+
+
+  - name: OUTPUT VPC ID
+    debug:
+      msg: "{{ vpc_facts }}"
+    ignore_errors: True
+
+
+  - name: OUTPUT VPC ID
+    debug:
+      msg: "Identified VPC: {{ vpc_facts.vpcs[0].vpc_id }}. This will be deleted."
+    ignore_errors: True
+
+
+  - name: DELETE INTERNET GATEWAY
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      state: absent
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: create_gateway
+
+
+  - name: DELETE ROUTE TABLE FOR PUBLIC SUBNETS
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      state: absent
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+
+
+  - name: DELETE SECURITY GROUP
+    ec2_group:
+      state: absent
+      name: "{{ sg_name }}"
+      description: "{{ sg_name }} security group"
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      region: "{{ aws_region }}"
+
+
+  - name: DELETE VPC SUBNETS
+    ec2_vpc_subnet:
+      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      cidr: "{{ item.cidr }}"
+      az: "{{ item.az }}"
+      tags:
+        name: "{{ item.name }}"
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+      state: absent
+    with_items: "{{ vpc_subnets }}"
+
+
+  - name: DELETE VPC IN "{{ aws_region }}"
+    ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ aws_region }}"
+      state: absent
+      tags:
+        automated: "{{ automation_tool }}"
+        stack: "{{ stack_name }}"
+        UK-SE: "{{ uk_se_name }}"
+    register: delete_vpc
+    retries: 60
+    delay: 10
+
+
+#------------------------------------------------------------------------------
+# End tasks
+#------------------------------------------------------------------------------
+...
