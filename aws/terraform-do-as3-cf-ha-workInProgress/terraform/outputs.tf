@@ -62,7 +62,7 @@ output "f5-1_eth1_1_ext_ip_vs1" {
 }
 
 data "aws_subnet" "f5-1_eth1_1_ext" {
-  id = module.vpc.public_subnets[1]
+  id = module.vpc.public_subnets[2]
 }
 output "f5-1_eth1_1_ext_cidr" {
   value = data.aws_subnet.f5-1_eth1_1_ext.cidr_block
@@ -90,7 +90,7 @@ output "f5-2_eth0_mgmt_pub_ip" {
 }
 
 data "aws_subnet" "f5-2_eth0_mgmt" {
-  id = module.vpc.public_subnets[2]
+  id = module.vpc.public_subnets[1]
 }
 output "f5-2_eth0_mgmt_cidr" {
   value = data.aws_subnet.f5-2_eth0_mgmt.cidr_block
@@ -134,10 +134,18 @@ output "f5-2_eth1_2_int_ip" {
 }
 
 data "aws_subnet" "f5-2_eth1_2_int" {
-  id = module.vpc.private_subnets[2]
+  id = module.vpc.private_subnets[1]
 }
 output "f5-2_eth1_2_int_cidr" {
   value = data.aws_subnet.f5-2_eth1_2_int.cidr_block
 }
 
 # -- END OUTPUT -----------------------------------------
+
+# -- SEND TO SLACK --------------------------------------
+
+# resource "null_resource" "slack" {
+#   provisioner "local-exec" {
+#     command = "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${var.message_text}\"}' https://hooks.slack.com/services/${var.webhook_url}"
+#   }
+# }

@@ -1,6 +1,6 @@
 # MGMT INTERFACE ---------------
 resource "aws_network_interface" "f5-2_eth0_mgmt" {
-  subnet_id   = module.vpc.public_subnets[2]
+  subnet_id   = module.vpc.public_subnets[1]
   security_groups = [aws_security_group.f5.id]
   private_ips = ["10.0.10.102"]
 
@@ -66,7 +66,7 @@ resource "aws_eip" "f5-2_eth1_1_ext_self" {
 # INT INTERFACE ----------------
 
 resource "aws_network_interface" "f5-2_eth1_2_int" {
-  subnet_id   = module.vpc.private_subnets[2]
+  subnet_id   = module.vpc.private_subnets[1]
   security_groups = [aws_security_group.f5_internal.id]
   private_ips = ["10.0.12.102"]
 

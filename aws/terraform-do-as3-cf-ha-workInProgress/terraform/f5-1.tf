@@ -28,7 +28,7 @@ variable "f5-1_eth1_1_ext_ips" {
 }
 
 resource "aws_network_interface" "f5-1_eth1_1_ext" {
-  subnet_id   = module.vpc.public_subnets[1]
+  subnet_id   = module.vpc.public_subnets[2]
   security_groups = [aws_security_group.f5.id]
   #private_ips = ["10.0.1.101"]
   private_ips = var.f5-1_eth1_1_ext_ips
@@ -63,19 +63,20 @@ resource "aws_eip" "f5-1_eth1_1_ext_vs0" {
 
 }
 
-resource "aws_eip" "f5-1_eth1_1_ext_vs1" {
-  network_interface         = aws_network_interface.f5-1_eth1_1_ext.id
-  associate_with_private_ip = "10.0.1.201"
-  vpc                       = true
+# Commenting out to restrict to single vs for now
+# resource "aws_eip" "f5-1_eth1_1_ext_vs1" {
+#   network_interface         = aws_network_interface.f5-1_eth1_1_ext.id
+#   associate_with_private_ip = "10.0.1.201"
+#   vpc                       = true
 
-  tags                      = {
-    Name                    = "${var.prefix}-ext-vs1"
-    f5_cloud_failover_label = "mydeployment"
-    # In multi-az you need to specify both VIPs that might map to the EIP.
-    f5_cloud_failover_vips  = "10.0.1.201,10.0.11.201"
-  }
+#   tags                      = {
+#     Name                    = "${var.prefix}-ext-vs1"
+#     f5_cloud_failover_label = "mydeployment"
+#     # In multi-az you need to specify both VIPs that might map to the EIP.
+#     f5_cloud_failover_vips  = "10.0.1.201,10.0.11.201"
+#   }
 
-}
+# }
 
 # INT INTERFACE ----------------
 

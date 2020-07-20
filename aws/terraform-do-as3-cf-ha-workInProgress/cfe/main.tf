@@ -1,8 +1,3 @@
-terraform {
-  required_providers {
-    bigip = "= 1.2"
-  }
-}
 data "terraform_remote_state" "aws_demo" {
   backend = "local"
 
@@ -11,28 +6,28 @@ data "terraform_remote_state" "aws_demo" {
   }
 }
 
-provider "bigip" {
-  alias    = "f5-1"
-  address  = data.terraform_remote_state.aws_demo.outputs.f5-1_ui
-  username = data.terraform_remote_state.aws_demo.outputs.f5_username
-  password = data.terraform_remote_state.aws_demo.outputs.f5_password
+
+resource "null_resource" "f5-1-cfe" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      #!/bin/bash
+      curl -k -X POST ${data.terraform_remote_state.aws_demo.outputs.f5-1_ui}/mgmt/shared/cloud-failover/declare \
+              -H "Content-Type: application/json" \
+	            -u ${data.terraform_remote_state.aws_demo.outputs.f5_username}:${data.terraform_remote_state.aws_demo.outputs.f5_password} \
+	            -d @"cfe.json"
+    EOF
+  }
 }
 
-provider "bigip" {
-  alias    = "f5-2"
-  address  = data.terraform_remote_state.aws_demo.outputs.f5-2_ui
-  username = data.terraform_remote_state.aws_demo.outputs.f5_username
-  password = data.terraform_remote_state.aws_demo.outputs.f5_password
-}
 
-# deploy application using as3
-resource "bigip_as3" "arch-f5-1" {
-  as3_json    = file("arch.json")
-  provider = bigip.f5-1
-  tenant_filter = "arch"
-}
-resource "bigip_as3" "arch-f5-2" {
-  as3_json    = file("arch.json")
-  provider = bigip.f5-2
-  tenant_filter = "arch"
+resource "null_resource" "f5-2-cfe" {
+  provisioner "local-exec" {
+    command = <<-EOF
+      #!/bin/bash
+      curl -k -X POST ${data.terraform_remote_state.aws_demo.outputs.f5-2_ui}/mgmt/shared/cloud-failover/declare \
+              -H "Content-Type: application/json" \
+	            -u ${data.terraform_remote_state.aws_demo.outputs.f5_username}:${data.terraform_remote_state.aws_demo.outputs.f5_password} \
+	            -d @"cfe.json"
+    EOF
+  }
 }
