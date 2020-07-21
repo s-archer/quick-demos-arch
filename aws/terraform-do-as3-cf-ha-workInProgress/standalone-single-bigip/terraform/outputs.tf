@@ -62,7 +62,7 @@ output "f5-1_eth1_1_ext_ip_vs0" {
 # }
 
 data "aws_subnet" "f5-1_eth1_1_ext" {
-  id = module.vpc.public_subnets[2]
+  id = module.vpc.public_subnets[1]
 }
 output "f5-1_eth1_1_ext_cidr" {
   value = data.aws_subnet.f5-1_eth1_1_ext.cidr_block

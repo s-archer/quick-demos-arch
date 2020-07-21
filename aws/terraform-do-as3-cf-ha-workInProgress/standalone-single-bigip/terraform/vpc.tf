@@ -8,9 +8,7 @@ module "vpc" {
   azs             = ["eu-west-2a"]
 
   # 10.0.0.0/24 = f5-1 Mgmt
-
   # 10.0.1.0/24 = f5-1 Public
-
   # 10.0.2.0/24 = f5-1 Internal
   
   public_subnets  = ["10.0.0.0/24","10.0.1.0/24"]

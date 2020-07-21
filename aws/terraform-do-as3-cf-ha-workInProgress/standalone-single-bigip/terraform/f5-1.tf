@@ -28,7 +28,7 @@ variable "f5-1_eth1_1_ext_ips" {
 }
 
 resource "aws_network_interface" "f5-1_eth1_1_ext" {
-  subnet_id   = module.vpc.public_subnets[2]
+  subnet_id   = module.vpc.public_subnets[1]
   security_groups = [aws_security_group.f5.id]
   #private_ips = ["10.0.1.101"]
   private_ips = var.f5-1_eth1_1_ext_ips
@@ -101,8 +101,7 @@ resource "aws_instance" "f5-1" {
   instance_type               = "m5.xlarge"
   user_data                   = data.template_file.f5-1_init.rendered
   key_name                    = aws_key_pair.demo.key_name
-  #iam_instance_profile        = "arch-cfe-route-role"
-  iam_instance_profile        = aws_iam_instance_profile.cfe.name
+
   root_block_device { delete_on_termination = true }
 
   network_interface {
