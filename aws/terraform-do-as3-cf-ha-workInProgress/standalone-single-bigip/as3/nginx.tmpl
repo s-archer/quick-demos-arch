@@ -17,10 +17,7 @@
           "virtualAddresses": [
             {
               "use": "serviceAddress1"
-            },
-            {
-              "use": "serviceAddress2"
-            }            
+            }      
           ],
           "pool": "web_pool",
           "persistenceMethods": [],
@@ -31,11 +28,6 @@
         "serviceAddress1":{
           "class":"Service_Address",
           "virtualAddress": ${virtual_ip_1},
-          "trafficGroup":"traffic-group-1"
-        },
-        "serviceAddress2":{
-          "class":"Service_Address",
-          "virtualAddress": ${virtual_ip_2},
           "trafficGroup":"traffic-group-1"
         },
         "web_pool": {

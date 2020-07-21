@@ -18,12 +18,6 @@ provider "bigip" {
   password = data.terraform_remote_state.aws_demo.outputs.f5_password
 }
 
-provider "bigip" {
-  alias    = "f5-2"
-  address  = data.terraform_remote_state.aws_demo.outputs.f5-2_ui
-  username = data.terraform_remote_state.aws_demo.outputs.f5_username
-  password = data.terraform_remote_state.aws_demo.outputs.f5_password
-}
 
 # deploy base comfig using declaraitive onboarding
 
@@ -31,28 +25,13 @@ resource "bigip_do"  "do-f5-1" {
   do_json = templatefile("do.tmpl", {
     hostname    = jsonencode(var.hostname-f5-1),
     bigip1      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_ip),
-    bigip2      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_2_int_ip),
     external_ip = jsonencode("${data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_1_ext_ip}/24"),
     internal_ip = jsonencode("${data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_ip}/24"),
+    internal_gw = jsonencode(cidrhost(data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_cidr, 1)),
     admin_pass  = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5_password),
     dns         = jsonencode("8.8.8.8"),
     ntp         = jsonencode("time.google.com")
   })
   provider = bigip.f5-1
-  timeout = 5
-}
-
-resource "bigip_do"  "do-f5-2" {
-  do_json = templatefile("do.tmpl", {
-    hostname    = jsonencode(var.hostname-f5-2),
-    bigip1      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_ip),
-    bigip2      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_2_int_ip),
-    external_ip = jsonencode("${data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_1_ext_ip}/24"),
-    internal_ip = jsonencode("${data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_2_int_ip}/24"),
-    admin_pass  = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5_password),
-    dns         = jsonencode("8.8.8.8"),
-    ntp         = jsonencode("time.google.com")
-  })
-  provider = bigip.f5-2
   timeout = 5
 }
