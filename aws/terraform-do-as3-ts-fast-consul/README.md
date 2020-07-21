@@ -86,7 +86,7 @@ terraform apply
 - Now you have Virtual IP and Pool information already configured on BIG-IP in partition defined in the consul.json file.
 
 
-## Configure BIG-IP HA API Failover with CFE
+## Configure BIG-IP HA API Failover with CFE (HA Option Only)
 
 
 - Finally, we need to deploy the CFE JSON declaration (see https://github.com/F5Networks/f5-appsvcs-extension for more details). 
