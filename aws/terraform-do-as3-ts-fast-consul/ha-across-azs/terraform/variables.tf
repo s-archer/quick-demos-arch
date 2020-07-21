@@ -49,3 +49,9 @@ variable onboard_log {
   type        = string
   default     = "/var/log/startup-script.log"
 }
+
+variable slack {
+  description = "example slack webhook"
+  type        = string
+  default     = "TQJGFGSVD/BR2D7AN06/2Bsc8hKCUlokflbqPDiKAzLP"
+}

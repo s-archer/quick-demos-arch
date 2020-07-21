@@ -144,8 +144,9 @@ output "f5-2_eth1_2_int_cidr" {
 
 # -- SEND TO SLACK --------------------------------------
 
-# resource "null_resource" "slack" {
-#   provisioner "local-exec" {
-#     command = "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"${var.message_text}\"}' https://hooks.slack.com/services/${var.webhook_url}"
-#   }
-# }
+resource "null_resource" "slack" {
+  provisioner "local-exec" {
+    command = "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"- BIG-IP-1:        https://${aws_eip.f5-1_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP-2:        https://${aws_eip.f5-2_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP PASSWORD: ${random_string.password.result}\n - CONSUL:          http://${aws_instance.consul.public_ip}:8500\n\"}' https://hooks.slack.com/services/${var.slack}"
+  }
+}
+#"curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"\ - BIG-IP-1:        https://${aws_eip.f5-1_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP-2:        https://${aws_eip.f5-2_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP PASSWORD: ${random_string.password.result}\n - CONSUL:          http://${aws_instance.consul.public_ip}:8500\n \"}' https://hooks.slack.com/services/${var.slack}"

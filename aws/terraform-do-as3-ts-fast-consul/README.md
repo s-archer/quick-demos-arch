@@ -13,10 +13,10 @@ To set up a complete new Application on your F5 BIG-IP through DO/AS3 leveraging
 
 The `terraform` directory has tf files for creating instances for consul, f5, iam policy, nginx servers with autoscale group.
 
-- `consul.tf` define the deployment of Hashicorp Consul, including IAM role/policy
-- `f5-*.tf` define the deployment of big-ip[s] and artifacts required for Cloud Failover Extension (like S3 bucket, IAM role/policy etc)
+- `consul.tf` defines the deployment of Hashicorp Consul, including IAM role/policy
+- `f5-*.tf` defines the deployment of big-ip[s] and artifacts required for Cloud Failover Extension (like S3 bucket, IAM role/policy etc)
 - `main.tf` refers to what region is used on aws
-- `f5-*.tf` define the deployment of big-ip[s]
+- `nginx.tf` defines the deployment of the NGINX autoscale group (scale up/down to show Service Discovery in action).
 - `ssh.tf` is used to create the key pairs
 - `variables.tf` defines the variables for the deployment, such as the prefix used for naming objects
 - `vpc.tf` is used to create a new vpc and also to define the aws security groups
@@ -29,7 +29,7 @@ The `terraform` directory has tf files for creating instances for consul, f5, ia
 - [Deploy Option 2]`ha-across-azs`
 ```
 git clone https://github.com/s-archer/quick-demos-arch
-cd quick-demos-arch/aws/terraform-do-as3-ts-fast-consul/[deploy option]/terraform/ 
+cd quick-demos-arch/aws/terraform-do-as3-ts-fast-consul/`[deploy option]`/terraform/ 
 ```
 - Create Terraform run
 - Modify `variables.tf` and update the values to identify you and your resources
