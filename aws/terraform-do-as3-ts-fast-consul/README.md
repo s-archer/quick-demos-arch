@@ -114,3 +114,21 @@ terraform apply
 `consul.sh` is used to install consul
 `nginx.sh` is used to install consul agent on nginx servers
 
+
+### To Destroy
+
+- To destroy the deployment gracefully, run the following commands:
+
+```
+cd ../cfe/
+terraform destroy
+
+cd ../as3/
+terraform destroy
+
+cd ../do/
+terraform destroy
+
+cd ../terraform/
+terraform destroy
+```
