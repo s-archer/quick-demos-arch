@@ -50,14 +50,15 @@ wait_for_bigip
 # WORKAROUND TO INCREASE MEMORY, TO HANDLE ALL 
 # AUTOMATION TOOLCHAIN PKGS
 #############################
-# echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY - START"
-# date
-# # Modify restjavad memory
-# tmsh modify sys db provision.extramb value 1000
-# tmsh modify sys db restjavad.useextramb value true
-# tmsh save sys config
-# tmsh restart sys service restjavad
-# echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY - DONE"
+echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY"
+date
+# Modify restjavad memory
+echo "Increasing extramb for restjavad"
+tmsh modify sys db provision.extramb value 1000
+tmsh modify sys db restjavad.useextramb value true
+tmsh save sys config
+tmsh restart sys service restjavad
+echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY - DONE"
 
 
 #############################
@@ -74,15 +75,15 @@ fi
 #############################
 ## IAPPS DIR FIX
 #############################
-# # start modify appdata directory size
-# echo "setting app directory size"
-# tmsh show sys disk directory /appdata
-# # 130,985,984 26,128,384 52,256,768
-# tmsh modify /sys disk directory /appdata new-size 52256768
-# tmsh show sys disk directory /appdata
-# echo "done setting app directory size"
-# tmsh save sys config
-# # end modify appdata directory size
+# start modify appdata directory size
+echo "setting app directory size"
+tmsh show sys disk directory /appdata
+# 130,985,984 26,128,384 52,256,768
+tmsh modify /sys disk directory /appdata new-size 52256768
+tmsh show sys disk directory /appdata
+echo "done setting app directory size"
+tmsh save sys config
+# end modify appdata directory size
 
 #############################
 ### GET ATC VERSIONS & URLS

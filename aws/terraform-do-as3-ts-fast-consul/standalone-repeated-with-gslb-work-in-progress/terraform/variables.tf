@@ -10,7 +10,7 @@ variable "uk_se_name" {
 
 variable "f5_ami_search_name" { 
   description = "search term to find the appropriate F5 AMI for current region"
-  default = "F5*BIGIP-14.1.2.3*Good*25Mbps*"
+  default = "F5*BIGIP-15.1.0.4*Better*25Mbps*"
 }
 
 variable "aws_secret_name" { 
