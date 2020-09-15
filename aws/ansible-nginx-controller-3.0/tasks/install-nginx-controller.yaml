@@ -22,6 +22,10 @@
       - jq
       - python-pip
       - wget
+      - yum-plugin-versionlock
+      - socat 
+      - ebtables 
+      - conntrack-tools
     lock_timeout: 360
     state: latest
   become: yes
@@ -57,7 +61,7 @@
 
 - name: COPY NGINX CONTROLLER INSTALL FILE (~850MB) TO CENTOS - TAKES ~10 MINS 
   copy:
-    src: ./files/controller-installer-3.0.0.tar.gz
+    src: "./files/{{ nginx_install_file }}"
     dest: /home/centos
     owner: root
     mode: '0644'
@@ -66,7 +70,7 @@
 
 - name: UNTAR THE INSTALLATION FILE
   unarchive: 
-    src: /home/centos/controller-installer-3.0.0.tar.gz
+    src: "/home/centos/{{ nginx_install_file }}"
     dest: /home/centos
     creates: /home/centos/controller-installer/install.sh
     remote_src: yes

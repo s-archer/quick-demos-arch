@@ -41,9 +41,17 @@
 - name: YUM INSTALL NGINX WGET & LATEST TRUSTED CA FILES
   yum:
     name: 
-      - nginx-plus
       - ca-certificates
       - wget
+    lock_timeout: 360
+    state: latest
+  become: yes
+
+
+- name: YUM INSTALL NGINX PLUS
+  yum:
+    name: 
+      - nginx-plus
     lock_timeout: 360
     state: latest
   become: yes

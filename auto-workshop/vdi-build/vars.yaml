@@ -16,7 +16,7 @@
     uk_se_name: arch
     stack_name: vdi-desktops-autows
     
-    aws_region: eu-west-1
+    aws_region: eu-west-2
     subnet_start: "10.1"
 #    
 #------------------------------------------------------------------------------

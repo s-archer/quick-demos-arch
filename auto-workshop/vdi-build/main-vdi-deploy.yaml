@@ -144,25 +144,25 @@
 
   - name: GET AMI FACTS
     ec2_ami_facts:
-      image_ids: ami-03581e6142a3e1a81
-      #filters:
-        #name: "xworkspace*"
+      #image_ids: ami-03581e6142a3e1a81
+      filters:
+        name: "xworkspace/amd64/desktop-v1.1.0-*"
     register: ami_facts
 
 
   - name: "AMI FACTS"
     debug:
-      msg: "{{ ami_facts }}"
+      msg: "{{ ami_facts.images[0].image_id }}"
   
 
   - name: "DEPLOY EC2 INSTANCE USING AMI"
     ec2:
       key_name: "{{ sshKey }}"
       instance_type: t2.medium
-      image: ami-03581e6142a3e1a81
+      image: "{{ ami_facts.images[0].image_id }}"
       wait: yes
       group: "{{ sg_name }}"
-      count: 3
+      count: 1
       vpc_subnet_id: "{{ vpc_subnet_ids.mgmt_a }}"
       assign_public_ip: yes
       instance_tags:

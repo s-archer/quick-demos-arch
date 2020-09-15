@@ -127,4 +127,6 @@ resource "aws_instance" "f5-1" {
   }
 }
 
-
+# module bigip {
+#   source = "https://github.com/s-archer/tf-bigip-aws-module"
+# }

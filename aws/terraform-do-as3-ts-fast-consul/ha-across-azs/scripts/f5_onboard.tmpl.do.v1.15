@@ -61,21 +61,6 @@ tmsh restart sys service restjavad
 echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY - DONE"
 
 #############################
-# CREATE LOCAL_ONLY PARTITION AND ROUTE FOR 
-# AWS MULTII-AZ (DO CAN'T CREATE LOCAL_ONLY PARTITION)
-#############################
-echo "CREATE LOCAL_ONLY PARTITION & ROUTE"
-wait_for_bigip
-tmsh create net vlan internal { interfaces add { 1.2 } tag 1002 }
-tmsh create net self internal-self { address ${internal_ip}/24 allow-service default traffic-group traffic-group-local-only vlan internal }
-# command below creates a partition in addition to a folder, automatically.
-tmsh create sys folder /LOCAL_ONLY device-group none traffic-group traffic-group-local-only
-tmsh -q -c 'cd /LOCAL_ONLY; create net route default { gw ${internal_gw} network default }'
-tmsh save sys config partitions all 
-sleep 10
-echo "CREATE LOCAL_ONLY PARTITION & ROUTE - DONE"
-
-#############################
 ### SET BIG-IP PASSWORD
 #############################
 echo "SET THE BIG-IP PASSWORD"
@@ -161,7 +146,6 @@ END_TOOLS
 #############################
 # GET ATC PACKAGES
 #############################
-echo "GET ATC PACKAGES"
 function getAtc () {
 atc=$(echo $toolsList | jq -r .tools[].name)
 for tool in $atc

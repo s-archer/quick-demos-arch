@@ -81,6 +81,10 @@ output "f5-1_eth1_2_int_cidr" {
   value = data.aws_subnet.f5-1_eth1_2_int.cidr_block
 }
 
+output "f5-1_eth1_2_int_gw" {
+  value = cidrhost(data.aws_subnet.f5-1_eth1_2_int.cidr_block, 1)
+}
+
 # - OUTPUT F5-2 -------------------------------------------
 
 # -- OUTPUT F5-2 MGMT -------------------------------------
@@ -138,6 +142,10 @@ data "aws_subnet" "f5-2_eth1_2_int" {
 }
 output "f5-2_eth1_2_int_cidr" {
   value = data.aws_subnet.f5-2_eth1_2_int.cidr_block
+}
+
+output "f5-2_eth1_2_int_gw" {
+  value = cidrhost(data.aws_subnet.f5-2_eth1_2_int.cidr_block, 1)
 }
 
 # -- END OUTPUT -----------------------------------------

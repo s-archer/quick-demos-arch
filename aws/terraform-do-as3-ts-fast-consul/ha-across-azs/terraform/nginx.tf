@@ -15,7 +15,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_autoscaling_group" "nginx" {
-  name                 = "${var.prefix}-nginx-asg"
+  name                 = "nginx-asg"
   launch_configuration = aws_launch_configuration.nginx.name
   desired_capacity     = 2
   min_size             = 1
@@ -29,7 +29,7 @@ resource "aws_autoscaling_group" "nginx" {
   tags = [
     {
       key                 = "Name"
-      value               = "${var.prefix}-nginx"
+      value               = "nginx"
       propagate_at_launch = true
     },
     {
@@ -42,7 +42,7 @@ resource "aws_autoscaling_group" "nginx" {
 }
 
 resource "aws_launch_configuration" "nginx" {
-  name_prefix                 = "${var.prefix}-nginx-"
+  name_prefix                 = "nginx-"
   image_id                    = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
   associate_public_ip_address = true

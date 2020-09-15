@@ -20,6 +20,8 @@
 
     sshKey: "arch_id_rsa"
     ssh_key_file_path: "~/.ssh/id_rsa"
+
+    nginx_install_file: "offline-controller-installer-2150895.tar.gz"
 #    
 #------------------------------------------------------------------------------
 #
