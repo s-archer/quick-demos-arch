@@ -48,9 +48,7 @@
               "servicePort": 80,
               "addressDiscovery": "consul",
               "updateInterval": 10,
-              "uri": "http://10.0.0.100:8500/v1/catalog/service/nginx",
-              "jmesPathQuery":"[*].{id:ID||Node,ip:{private:Address,public:Address},port:ServicePort}",
-              "credentialUpdate": false
+              "uri": "http://10.0.0.100:8500/v1/catalog/service/nginx"
             }
           ]
         }

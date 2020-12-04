@@ -61,12 +61,10 @@
         - "run /util bash -c 'test -f /tmp/f5-cloud-libs-signals/ADMIN_CREATED && echo ADMIN_CREATED'"
       wait_for:
         - result contains ADMIN_CREATED
-      interval: 10
-      retries: 60
       provider:
         server: "{{ item }}"
         user: "{{ bigip_user }}"
-        password: "{{ bigip_pass }}"
+        #password: "{{ bigip_pass }}"
         transport: cli
         ssh_keyfile: "{{ ssh_key_file_path }}"
         validate_certs: no
@@ -75,7 +73,8 @@
     loop:
       - "{{ my_stack.ansible_facts.cloudformation[stack_name].stack_outputs.Bigip1ManagementEipAddress }}"
     until: ssh_output is not failed
-    retries: 5
+    retries: 60
+    delay: 10
 
 
   - name: SSH TO BIG-IPS AND ENABLE PASSWORD AUTH

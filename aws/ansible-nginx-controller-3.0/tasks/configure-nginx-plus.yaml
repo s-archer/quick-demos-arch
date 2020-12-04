@@ -25,6 +25,16 @@
   become: yes
 
 
+- name: YUM INSTALL NGINX WGET & LATEST TRUSTED CA FILES
+  yum:
+    name: 
+      - ca-certificates
+      - wget
+    lock_timeout: 360
+    state: latest
+  become: yes
+
+
 - name: DOWNLOAD LATEST NGINX REPO FILE
   yum_repository:
     name: nginx-plus
@@ -35,16 +45,6 @@
     sslclientkey: /etc/ssl/nginx/nginx-repo.key
     enabled: yes
     gpgcheck: yes
-  become: yes
-
-
-- name: YUM INSTALL NGINX WGET & LATEST TRUSTED CA FILES
-  yum:
-    name: 
-      - ca-certificates
-      - wget
-    lock_timeout: 360
-    state: latest
   become: yes
 
 

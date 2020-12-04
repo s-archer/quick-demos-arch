@@ -43,7 +43,7 @@
     ec2_instance_facts:
       filters:
         "tag:type": ubuntu-workstation
-        "tag:name": "autows-vdi-{{uk_se_name}}"
+        "tag:Name": "autows-vdi-{{uk_se_name}}"
         "tag:UK-SE": "{{ uk_se_name }}"
     register: vdi_facts
 

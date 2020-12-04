@@ -64,7 +64,7 @@
       cidr: "{{ item.cidr }}"
       az: "{{ item.az }}"
       tags:
-        name: "{{ item.name }}"
+        Name: "{{ item.name }}"
         automated: "{{ automation_tool }}"
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"
@@ -167,7 +167,7 @@
       assign_public_ip: yes
       instance_tags:
         type: ubuntu-workstation
-        name: "autows-vdi-{{uk_se_name}}"
+        Name: "autows-vdi-{{uk_se_name}}"
         automated: "{{ automation_tool }}"
         stack: "{{ stack_name }}"
         UK-SE: "{{ uk_se_name }}"

@@ -75,7 +75,7 @@ resource "aws_eip" "f5-ext" {
 # # ONBOARDING TEMPLATE  ---------
 
 data "template_file" "f5-1_init" {
-  template = file("../scripts/f5_onboard.tmpl")
+  template = file("${path.root}/f5_onboard.tmpl")
 
   vars = {
     password              = random_string.password.result
@@ -126,7 +126,3 @@ resource "aws_instance" "f5-1" {
     UK-SE = local.json_vars.tags.uk-se
   }
 }
-
-# module bigip {
-#   source = "https://github.com/s-archer/tf-bigip-aws-module"
-# }

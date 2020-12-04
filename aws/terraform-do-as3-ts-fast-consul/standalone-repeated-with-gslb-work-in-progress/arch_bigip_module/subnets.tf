@@ -10,10 +10,12 @@
 #     "private_ip_count": 2
 # 
 
+# variable "cidr" {} 
 
 locals {
   # Get the VPC CIDR.
-  cidr = local.json_vars.cidr
+  cidr = local.json_vars.cidr 
+  #
   # Auto generate the public MGMT subnet from the CIDR.
   mgmt_cidrs = [cidrsubnet(local.cidr, 8, 0)]
   # Determine how many public 'tmm' subnets are required. For example, you might set the max_ip_count_per_subnet to 20, because that is

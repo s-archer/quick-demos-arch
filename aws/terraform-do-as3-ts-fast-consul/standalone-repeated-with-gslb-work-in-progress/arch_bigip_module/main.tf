@@ -4,10 +4,10 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = "eu-west-2"
-  # region = "eu-central-1"
-}
+# provider "aws" {
+#   region = "eu-west-2"
+#   # region = "eu-central-1"
+# }
 
 # Load some json variables from a file (https://discuss.hashicorp.com/t/how-to-work-with-json/2345)
 locals {

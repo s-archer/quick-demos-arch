@@ -35,11 +35,11 @@ output "pub_subnet_ids" {
 # -- OUTPUT CREDS ---------------------------------------
 
 output "f5_password" {
-  value = "${random_string.password.result}"
+  value = random_string.password.result
 }
 
 output "f5_username" {
-  value = "${local.json_vars.user}"
+  value = local.json_vars.user
 }
 
 # - OUTPUT CONSUL -----------------------------------------
@@ -53,7 +53,7 @@ output "f5_username" {
 # -- OUTPUT F5-1 MGMT -------------------------------------
 
 output "f5-mgmt_pub_ip" {
-  value = "${aws_eip.f5-mgmt.public_ip}"
+  value = aws_eip.f5-mgmt.public_ip
 }
 
 output "f5-1_ui" {

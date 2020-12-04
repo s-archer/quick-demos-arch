@@ -1,7 +1,7 @@
 {     
     "availability_zone_names": ["eu-west-2a"],
-    "cidr": "10.0.0.0/16",
     "f5_ami_search_name": "F5*BIGIP-15.1.0.4*Better*25Mbps*",
+    "cidr": "10.0.0.0/16",
     "f5_user": "admin",
     "libs_dir": "/config/cloud/aws/node_modules",
     "onboard_log": "/var/log/startup-script.log",

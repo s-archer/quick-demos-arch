@@ -7,7 +7,7 @@
   hosts: launched_ec2s
   gather_facts: no
   remote_user: ubuntu
-  sudo: yes
+  become: yes
 
 
   tasks:

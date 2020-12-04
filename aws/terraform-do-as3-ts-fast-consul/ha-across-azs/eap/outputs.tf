@@ -1,6 +1,5 @@
-output "state" {
-  value = "STATE: ${bigip_command.f5-1-ha-state.command_result[0]}"
-}
+
+
 
 output "bigip1-ui" {
   value = "BIGIP1: ${data.terraform_remote_state.aws_demo.outputs.f5-1_ui}"

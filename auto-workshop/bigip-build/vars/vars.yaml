@@ -24,7 +24,7 @@
 
     cft_stack_name_list:
       - autows-cft-stack-1
-      - autows-cft-stack-2
+    #  - autows-cft-stack-2
 #    
 #------------------------------------------------------------------------------
 #

@@ -3,11 +3,11 @@
 # -- OUTPUT CREDS ---------------------------------------
 
 output "f5_password" {
-  value = "${random_string.password.result}"
+  value = random_string.password.result
 }
 
 output "f5_username" {
-  value = "${var.username}"
+  value = var.username
 }
 
 # - OUTPUT CONSUL -----------------------------------------
@@ -42,10 +42,10 @@ output "f5-1_ssh" {
 # -- OUTPUT F5-1 EXT -------------------------------------
 
 output "f5-1_eth1_1_ext_pub_ip_self" {
-  value = "${aws_eip.f5-1_eth1_1_ext_self.public_ip}"
+  value = aws_eip.f5-1_eth1_1_ext_self.public_ip
 }
 output "f5-1_eth1_1_ext_pub_ip_vs0" {
-  value = "${aws_eip.f5-1_eth1_1_ext_vs0.public_ip}"
+  value = aws_eip.f5-1_eth1_1_ext_vs0.public_ip
 }
 # output "f5-1_eth1_1_ext_pub_ip_vs1" {
 #   value = "${aws_eip.f5-1_eth1_1_ext_vs1.public_ip}"
@@ -71,7 +71,7 @@ output "f5-1_eth1_1_ext_cidr" {
 # -- OUTPUT F5-1 INT -------------------------------------
 
 output "f5-1_eth1_2_int_ip" {
-  value = "${aws_network_interface.f5-1_eth1_2_int.private_ip}"
+  value = aws_network_interface.f5-1_eth1_2_int.private_ip
 }
 
 data "aws_subnet" "f5-1_eth1_2_int" {
@@ -90,7 +90,7 @@ output "f5-1_eth1_2_int_gw" {
 # -- OUTPUT F5-2 MGMT -------------------------------------
 
 output "f5-2_eth0_mgmt_pub_ip" {
-  value = "${aws_eip.f5-2_eth0_mgmt.public_ip}"
+  value = aws_eip.f5-2_eth0_mgmt.public_ip
 }
 
 data "aws_subnet" "f5-2_eth0_mgmt" {
@@ -111,7 +111,7 @@ output "f5-2_ssh" {
 # -- OUTPUT F5-2 EXT -------------------------------------
 
 output "f5-2_eth1_1_ext_pub_ip_self" {
-  value = "${aws_eip.f5-2_eth1_1_ext_self.public_ip}"
+  value = aws_eip.f5-2_eth1_1_ext_self.public_ip
 }
 
 output "f5-2_eth1_1_ext_ip" {
@@ -134,7 +134,7 @@ output "f5-2_eth1_1_ext_cidr" {
 # -- OUTPUT F5-2 INT -------------------------------------
 
 output "f5-2_eth1_2_int_ip" {
-  value = "${aws_network_interface.f5-2_eth1_2_int.private_ip}"
+  value = aws_network_interface.f5-2_eth1_2_int.private_ip
 }
 
 data "aws_subnet" "f5-2_eth1_2_int" {
@@ -153,8 +153,8 @@ output "f5-2_eth1_2_int_gw" {
 # -- SEND TO SLACK --------------------------------------
 
 
-# resource "null_resource" "slack" {
-#   provisioner "local-exec" {
-#     command = "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"- BIG-IP-1:        https://${aws_eip.f5-1_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP-2:        https://${aws_eip.f5-2_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP PASSWORD: ${random_string.password.result}\n - CONSUL:          http://${aws_instance.consul.public_ip}:8500\n\"}' https://hooks.slack.com/services/${var.slack}"
-#   }
-# }
+resource "null_resource" "slack" {
+  provisioner "local-exec" {
+    command = "curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"- BIG-IP-1:        https://${aws_eip.f5-1_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP-2:        https://${aws_eip.f5-2_eth0_mgmt.public_ip}:${var.port}\n - BIG-IP PASSWORD: ${random_string.password.result}\n - CONSUL:          http://${aws_instance.consul.public_ip}:8500\n\"}' https://hooks.slack.com/services/${var.slack}"
+  }
+}
