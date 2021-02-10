@@ -21,7 +21,7 @@ output "consul_ui" {
 # -- OUTPUT F5-1 MGMT -------------------------------------
 
 output "f5-1_eth0_mgmt_pub_ip" {
-  value = "${aws_eip.f5-1_eth0_mgmt.public_ip}"
+  value = aws_eip.f5-1_eth0_mgmt.public_ip
 }
 
 data "aws_subnet" "f5-1_eth0_mgmt" {

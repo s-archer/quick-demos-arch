@@ -1,8 +1,3 @@
-variable "region" {
-  description = "prefix for resources created"
-  default     = "eu-west-1"
-}
-
 variable "prefix" {
   description = "prefix for resources created"
   default     = "arch-hashi-f5-demo"
@@ -13,9 +8,14 @@ variable "uk_se_name" {
   default     = "arch"
 }
 
+variable "instance_count" {
+  description = "prefix for resources created"
+  default     = "2"
+}
+
 variable "f5_ami_search_name" { 
   description = "search term to find the appropriate F5 AMI for current region"
-  default = "F5*BIGIP-15.1.0.4*Better*25Mbps*"
+  default = "F5*BIGIP-15.1*Good*25Mbps*"
 }
 
 variable "aws_secret_name" { 
@@ -53,10 +53,4 @@ variable onboard_log {
   description = "Directory on the BIG-IP to store the cloud-init logs"
   type        = string
   default     = "/var/log/startup-script.log"
-}
-
-variable slack {
-  description = "example slack webhook"
-  type        = string
-  default     = "TQJGFGSVD/BR2D7AN06/2Bsc8hKCUlokflbqPDiKAzLP"
 }

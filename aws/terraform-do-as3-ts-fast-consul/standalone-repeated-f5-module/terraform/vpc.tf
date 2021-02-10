@@ -5,27 +5,21 @@ module "vpc" {
   name = "${var.prefix}-f5-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["${var.region}a","${var.region}b"]
+  azs             = ["eu-west-2a"]
 
   # 10.0.0.0/24 = f5-1 Mgmt
-  # 10.0.10.0/24 = f5-2 Mgmt
-
   # 10.0.1.0/24 = f5-1 Public
-  # 10.0.11.0/24 = f5-2 Public
-
   # 10.0.2.0/24 = f5-1 Internal
-  # 10.0.12.0/24 = f5-2 Internal
   
-  # note that because we have declared 2 AZs, the subnets are allocated in order into AZ1,AZ2,AZ1,AZ2...ETC
-  public_subnets  = ["10.0.0.0/24","10.0.10.0/24","10.0.1.0/24","10.0.11.0/24"]
-  private_subnets = ["10.0.2.0/24", "10.0.12.0/24"]
+  public_subnets  = ["10.0.0.0/24","10.0.1.0/24"]
+  private_subnets = ["10.0.2.0/24"]
 
   # Need the NAT gateway to allow BIG-IP outbound to download onboarding artifacts.
   enable_nat_gateway     = true
   one_nat_gateway_per_az = true
 
   tags = {
-    uk-se = "arch"
+    uk-se = var.uk_se_name
   }
 }
 
