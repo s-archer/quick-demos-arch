@@ -19,3 +19,5 @@
 
 # Creds files
 *creds*
+*.pem
+
