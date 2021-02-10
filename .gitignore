@@ -1,6 +1,7 @@
 #  Local .terraform directories - Arch
 **/.terraform/*
 **/darwin_amd64/*
+.terraform.lock.hcl
 
 # .tfstate files
 *.tfstate
@@ -20,4 +21,7 @@
 # Creds files
 *creds*
 *.pem
+
+# Others
+.DS_Store
 
