@@ -1,6 +1,12 @@
+locals {
+  azs = [
+    for each_az in var.azs_short : format("%s%s", var.region, each_az)
+  ]
+}
+
 variable "region" {
   description = "AWS region name"
-  default     = "eu-west-2"
+  default     = "eu-west-1"
 }
 variable "azs_short" {
   description = "Assumes three AZs within region.  Locals below will format the full AZ names based on Region"
@@ -30,18 +36,25 @@ variable "uk_se_name" {
   description = "UK SE name tag"
   default     = "arch"
 }
-locals {
-  azs = [
-    for each_az in var.azs_short : format("%s%s", var.region, each_az)
-  ]
-}
+
 variable "f5cs_gslb_zone" {
   description = "F5 Cloud Services Zone"
   default     = "gslb.archf5.com"
 }
 
-variable "f5cs_user" {
-  description = "F5 Cloud Services Login"
-  default     = ""
+variable "f5cs_creds" {
+  description = "F5 Cloud Services credentials location"
+  default     = "../../../creds/f5cs_creds.json"
+  sensitive   = true
 }
-variable "f5cs_pass" {}
+
+variable "f5sl_creds" {
+  description = "F5 Silverline credentials location"
+  default     = "../../../creds/f5sl_creds.json"
+  sensitive   = true
+}
+
+variable "waf_enable" {
+  description = "Enable ASM Provisioning and policy on BIG-IP"
+  default     = true
+}
