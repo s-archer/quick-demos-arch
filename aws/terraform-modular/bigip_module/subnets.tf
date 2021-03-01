@@ -1,9 +1,4 @@
-# This file automatically generates subnets and IPs based on the values provided in the variables.json file, for example:
-#
-# "public_subnets": {
-#     "ip_count": 200,
-#     "ip_count_per_subnet": 20
-#
+# This file automatically generates subnets and IPs based on the values provided to the module:
 
 locals {
   # Get the VPC CIDR.
@@ -38,20 +33,13 @@ locals {
     for each_cidr in local.priv_cidrs : format("%s/%s", cidrhost(each_cidr, 4), element(split("/", each_cidr), 1))
   ]
 
-  # # Auto generate the private self-IP (.4) using the private subnet.
-  # priv_ips = {
-  #   for each_cidr in local.priv_cidrs :
-  #   each_cidr => [for i in range(1) :
-  #     cidrhost(each_cidr, (i + 4))
-  #   ]
-  # }
   #    ***** PUBLIC *****
   #
   
   # Determine how many public 'tmm' subnets are required. For example, you might set the max_ip_count_per_subnet to 20, because that is
   # the maximum number of IPs an EC2 instance can support on a single interface.  Therefore if you need 25 public IPs, we would need two
   # public subnets, the first could accommodate 20 IPs and the second could accommodate the remaining 5 IPs.
-  # '-1' removes self-ip for each interface from the calculation.
+  # '-1' subtracts one self-ip, for each interface, from the calculation.
   pub_cidr_qty = min((var.total_vs_ip_count / (var.max_ip_count_per_nic -1)), 20)
 
   # Auto generate a list containing the correct quantity of public 'tmm' subnets.   
@@ -65,12 +53,6 @@ locals {
   ]
 
   # Auto generate the correct quantity of public 'tmm' IPs, using as many subnets as necessary. Creates a map of subnets, each containing a list of IPs.
-  # pub_ips = {
-  #   for each_chunk in chunklist(range(1, (var.total_vs_ip_count + 1)), var.max_ip_count_per_nic) :
-  #   cidrsubnet(local.cidr, 3, (((each_chunk[0] + (var.max_ip_count_per_nic - 1)) / var.max_ip_count_per_nic + 1))) => [for i in range(length(each_chunk)) :
-  #     cidrhost(cidrsubnet(local.cidr, 3, (((each_chunk[0] + (var.max_ip_count_per_nic - 1)) / var.max_ip_count_per_nic))), (i + 4))
-  #   ]
-  # }
   pub_ips = {
     for index, each_cidr in local.pub_cidrs :  
       each_cidr => [for i in range(1, (var.max_ip_count_per_nic + 1)) :
@@ -89,6 +71,7 @@ locals {
     for each_cidr in local.pub_cidrs : format("%s/%s", cidrhost(each_cidr, 4), element(split("/", each_cidr), 1))
   ]
 
+  # Create a simple list of just the 'tmm' VS IPs
   pub_vs_ips_list = flatten([
     for index, each_cidr in local.pub_ips :
     [for each_ip in each_cidr :
@@ -96,6 +79,7 @@ locals {
     ]
   ])
 
+  # Create a complex list of arrays containing VS IP, EIP and DNS name.
   pub_vs_eips_list = [
     for eip in aws_eip.f5-pub[*] : {
       private_ip = eip.private_ip
@@ -104,14 +88,13 @@ locals {
     } if contains(local.pub_vs_ips_list, format("%s/%s", eip.private_ip, element(split("/", local.pub_cidrs[0]), 1)))
   ]  
 
-  # }
-
   # After the subnets are created, we can get the public subnet IDs
   pub_subnet_ids = slice(aws_subnet.auto_public[*].id, 1, length(aws_subnet.auto_public))
+
   # # After the subnets are created (see aws_subnet resource blocks below), we can gather the subnet IDs
   pub_and_mgmt_subnet_ids = aws_subnet.auto_public[*].id
   
-  # Take the app_list provided to the module by parent and append the module allocated Virtual Server IPs to the 
+  # Take the app_list provided to the module by parent and append the module allocated Virtual Server IPs, along with the AWS region and the associated EIP, to the 
   # list for use in the AS3 template.
   app_list = [
     for index, each_app in var.app_list : concat(each_app, [local.pub_vs_eips_list[index].private_ip], [var.region], [local.pub_vs_eips_list[index].public_ip]  )
