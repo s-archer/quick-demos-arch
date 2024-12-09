@@ -58,7 +58,7 @@
                                     "tagged": false
                                 }
                             ]
-                        },
+                        }, 
                         "internal-self": {
                             "class": "SelfIp",
                             "address": "{{{ INTERNAL_IP }}}",
@@ -68,8 +68,6 @@
                         },
                         "dbvars": {
                             "class": "DbVariables",
-                            "provision.extramb": 500,
-                            "restjavad.useextramb": true,
                             "config.allow.rfc3927": "enable"
                         },
                         "configsync": {
