@@ -106,7 +106,7 @@ output "f5-2_ui" {
 
 output "f5-2_ssh" {
   value = "ssh admin@${aws_eip.f5-2_eth0_mgmt.public_ip} -i ssh-key.pem"
-} 
+}
 
 # -- OUTPUT F5-2 EXT -------------------------------------
 

@@ -1,6 +1,6 @@
 variable "region" {
   description = "prefix for resources created"
-  default     = "eu-west-1"
+  default     = "eu-west-2"
 }
 
 variable "prefix" {
@@ -13,34 +13,35 @@ variable "uk_se_name" {
   default     = "arch"
 }
 
-variable "f5_ami_search_name" { 
+variable "f5_ami_search_name" {
   description = "search term to find the appropriate F5 AMI for current region"
-  default = "F5*BIGIP-15.1.0.4*Better*25Mbps*"
+  # default     = "F5*BIGIP-15.1.0.4*Better*25Mbps*"
+  default = "F5*BIGIP-17.*Better*25Mbps*"
 }
 
-variable "aws_secret_name" { 
+variable "aws_secret_name" {
   description = "name of secret created in aws secrets manage"
-  default = "my_bigip_password"
+  default     = "my_bigip_password"
 }
 
-variable "username" { 
+variable "username" {
   description = "big-ip username"
-  default = "admin"
+  default     = "admin"
 }
 
-variable "password" { 
+variable "password" {
   description = "big-ip password"
-  default = ""
+  default     = ""
 }
 
-variable "address" { 
+variable "address" {
   description = "big-ip address"
-  default = ""
+  default     = ""
 }
 
-variable "port" { 
+variable "port" {
   description = "big-ip port, 443 default, use 8443 for single NIC"
-  default = "443"
+  default     = "443"
 }
 
 variable "libs_dir" {
@@ -49,14 +50,24 @@ variable "libs_dir" {
   default     = "/config/cloud/aws/node_modules"
 }
 
-variable onboard_log {
+variable "onboard_log" {
   description = "Directory on the BIG-IP to store the cloud-init logs"
   type        = string
   default     = "/var/log/startup-script.log"
 }
 
-variable slack {
+variable "slack" {
   description = "example slack webhook"
   type        = string
   default     = "TQJGFGSVD/BR2D7AN06/2Bsc8hKCUlokflbqPDiKAzLP"
+}
+
+variable "hostname-f5-1" {
+  description = "big-ip hostname"
+  default     = "f5-1.archf5demo.net"
+}
+
+variable "hostname-f5-2" {
+  description = "big-ip hostname"
+  default     = "f5-2.archf5demo.net"
 }

@@ -25,7 +25,7 @@ provider "bigip" {
 # deploy base comfig using declaraitive onboarding
 
 resource "bigip_do"  "do-f5-1" {
-  do_json = templatefile("do.tmpl", {
+  do_json = templatefile("do-ha.tmpl", {
     hostname    = jsonencode(var.hostname-f5-1),
     bigip1      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_ip),
     bigip2      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_2_int_ip),
@@ -42,7 +42,7 @@ resource "bigip_do"  "do-f5-1" {
 }
 
 resource "bigip_do"  "do-f5-2" {
-  do_json = templatefile("do.tmpl", {
+  do_json = templatefile("do-ha.tmpl", {
     hostname    = jsonencode(var.hostname-f5-2),
     bigip1      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-1_eth1_2_int_ip),
     bigip2      = jsonencode(data.terraform_remote_state.aws_demo.outputs.f5-2_eth1_2_int_ip),

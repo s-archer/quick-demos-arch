@@ -2,8 +2,9 @@ data "aws_ami" "ubuntu" {
   most_recent = true
 
   filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+    name = "name"
+    # values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
   }
 
   filter {
@@ -12,6 +13,7 @@ data "aws_ami" "ubuntu" {
   }
 
   owners = ["099720109477"] # Canonical
+
 }
 
 resource "aws_autoscaling_group" "nginx" {
@@ -26,18 +28,17 @@ resource "aws_autoscaling_group" "nginx" {
     create_before_destroy = true
   }
 
-  tags = [
-    {
-      key                 = "Name"
-      value               = "nginx"
-      propagate_at_launch = true
-    },
-    {
-      key                 = "Env"
-      value               = "consul"
-      propagate_at_launch = true
-    },
-  ]
+  tag {
+    key                 = "Name"
+    value               = "nginx"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Env"
+    value               = "consul"
+    propagate_at_launch = true
+  }
 
 }
 

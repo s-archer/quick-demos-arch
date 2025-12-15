@@ -1,8 +1,8 @@
 # MGMT INTERFACE ---------------
 resource "aws_network_interface" "f5-2_eth0_mgmt" {
-  subnet_id   = module.vpc.public_subnets[1]
+  subnet_id       = module.vpc.public_subnets[1]
   security_groups = [aws_security_group.f5.id]
-  private_ips = ["10.0.10.102"]
+  private_ips     = ["10.0.10.102"]
 
   tags = {
     Name = "mgmt_interface"
@@ -12,10 +12,10 @@ resource "aws_network_interface" "f5-2_eth0_mgmt" {
 resource "aws_eip" "f5-2_eth0_mgmt" {
   network_interface         = aws_network_interface.f5-2_eth0_mgmt.id
   associate_with_private_ip = "10.0.10.102"
-  vpc                       = true
 
-  tags                      = {
-    Name                    = "${var.prefix}-2-mgmt"
+
+  tags = {
+    Name = "${var.prefix}-2-mgmt"
   }
 }
 
@@ -23,12 +23,12 @@ resource "aws_eip" "f5-2_eth0_mgmt" {
 
 variable "f5-2_eth1_1_ext_ips" {
   description = "Self IP Plus secondary IPs for VIPS"
-  type        = list
-  default     = ["10.0.11.102","10.0.11.200","10.0.11.201"]
+  type        = list(any)
+  default     = ["10.0.11.102", "10.0.11.200", "10.0.11.201"]
 }
 
 resource "aws_network_interface" "f5-2_eth1_1_ext" {
-  subnet_id   = module.vpc.public_subnets[3]
+  subnet_id       = module.vpc.public_subnets[3]
   security_groups = [aws_security_group.f5.id]
   # private_ips = ["10.0.11.102"]
   private_ips = var.f5-2_eth1_1_ext_ips
@@ -42,10 +42,10 @@ resource "aws_network_interface" "f5-2_eth1_1_ext" {
 resource "aws_eip" "f5-2_eth1_1_ext_self" {
   network_interface         = aws_network_interface.f5-2_eth1_1_ext.id
   associate_with_private_ip = "10.0.11.102"
-  vpc                       = true
 
-  tags                      = {
-    Name                    = "${var.prefix}-2-ext-self"
+
+  tags = {
+    Name = "${var.prefix}-2-ext-self"
   }
 }
 
@@ -54,46 +54,22 @@ resource "aws_eip" "f5-2_eth1_1_ext_self" {
 # resource "aws_eip" "f5-2_eth1_1_ext_vs0" {
 #   network_interface = aws_network_interface.f5-2_eth1_1_ext.id
 #   associate_with_private_ip = "10.0.11.200"
-#   vpc               = true
 # }
 
 # resource "aws_eip" "f5-2_eth1_1_ext_vs1" {
 #   network_interface = aws_network_interface.f5-2_eth1_1_ext.id
 #   associate_with_private_ip = "10.0.11.201"
-#   vpc               = true
 # }
 
 # INT INTERFACE ----------------
 
 resource "aws_network_interface" "f5-2_eth1_2_int" {
-  subnet_id   = module.vpc.private_subnets[1]
+  subnet_id       = module.vpc.private_subnets[1]
   security_groups = [aws_security_group.f5_internal.id]
-  private_ips = ["10.0.12.102"]
+  private_ips     = ["10.0.12.102"]
 
   tags = {
     Name = "internal_interface"
-  }
-}
-
-# ONBOARDING TEMPLATE  ---------
-
-data "template_file" "f5-2_init" {
-  template = file("../scripts/f5_onboard.tmpl")
-
-  vars = {
-    password              = random_string.password.result
-    internal_ip           = aws_network_interface.f5-2_eth1_2_int.private_ip
-    internal_gw           = cidrhost(data.aws_subnet.f5-2_eth1_2_int.cidr_block, 1)
-    doVersion             = "latest"
-    #example version:
-    #as3Version           = "3.16.0"
-    as3Version            = "latest"
-    tsVersion             = "latest"
-    cfVersion             = "latest"
-    fastVersion           = "latest"
-    libs_dir              = var.libs_dir
-    onboard_log           = var.onboard_log
-    projectPrefix         = var.prefix
   }
 }
 
@@ -103,11 +79,36 @@ resource "aws_instance" "f5-2" {
 
   ami = data.aws_ami.f5_ami.id
 
-  instance_type               = "m5.xlarge"
-  user_data                   = data.template_file.f5-2_init.rendered
-  key_name                    = aws_key_pair.demo.key_name
+  instance_type = "m5.xlarge"
+  user_data = templatefile("./templates/user-data-bip-2.tpl", {
+    password        = random_string.password.result
+    internal_ip     = aws_network_interface.f5-2_eth1_2_int.private_ip
+    internal_gw     = cidrhost(data.aws_subnet.f5-2_eth1_2_int.cidr_block, 1)
+    doVersion       = "latest"
+    as3Version      = "latest"
+    tsVersion       = "latest"
+    cfVersion       = "latest"
+    fastVersion     = "latest"
+    libs_dir        = var.libs_dir
+    onboard_log     = var.onboard_log
+    projectPrefix   = var.prefix
+    # For DO
+    hostname        = jsonencode(var.hostname-f5-2),
+    bigip1          = jsonencode(aws_network_interface.f5-1_eth1_2_int.private_ip),
+    bigip2          = jsonencode(aws_network_interface.f5-2_eth1_2_int.private_ip),
+    external_ip     = jsonencode("${var.f5-2_eth1_1_ext_ips[0]}/24"),
+    internal_ip     = jsonencode("${aws_network_interface.f5-2_eth1_2_int.private_ip}/24"),
+    internal_ip_raw = "${aws_network_interface.f5-2_eth1_2_int.private_ip}/24",
+    internal_gw     = jsonencode("${cidrhost(data.aws_subnet.f5-2_eth1_2_int.cidr_block, 1)}/32"),
+    internal_gw_raw = cidrhost(data.aws_subnet.f5-2_eth1_2_int.cidr_block, 1),
+    peer_net        = jsonencode(data.aws_subnet.f5-1_eth1_2_int.cidr_block),
+    admin_pass      = jsonencode(random_string.password.result),
+    dns             = jsonencode("8.8.8.8"),
+    ntp             = jsonencode("time.google.com")
+  })
+  key_name = aws_key_pair.demo.key_name
   #iam_instance_profile        = "arch-cfe-route-role"
-  iam_instance_profile        = aws_iam_instance_profile.cfe.name
+  iam_instance_profile = aws_iam_instance_profile.cfe.name
   root_block_device { delete_on_termination = true }
 
   network_interface {
@@ -128,7 +129,7 @@ resource "aws_instance" "f5-2" {
   provisioner "local-exec" {
     command = "while [[ \"$(curl -skiu ${var.username}:${random_string.password.result} https://${self.public_ip}:${var.port}/mgmt/shared/appsvcs/declare | grep -Eoh \"^HTTP/1.1 204\")\" != \"HTTP/1.1 204\" ]]; do sleep 5; done"
   }
-  
+
   tags = {
     Name = "${var.prefix}-f5-2"
     Env  = "consul"

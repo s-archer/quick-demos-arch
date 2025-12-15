@@ -17,7 +17,6 @@ data "aws_ami" "f5_ami" {
 # Create S3 bucket for Cloud Failover Extension (CFE)
 resource "aws_s3_bucket" "arch_cfe" {
   bucket        = "arch-cfe-bucket"
-  acl           = "private"
   force_destroy = true
 
   tags = {
@@ -25,6 +24,20 @@ resource "aws_s3_bucket" "arch_cfe" {
     Environment             = "Dev"
     f5_cloud_failover_label = "mydeployment"
   }
+}
+
+resource "aws_s3_bucket_ownership_controls" "arch_cfe" {
+  bucket = aws_s3_bucket.arch_cfe.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "arch_cfe" {
+  depends_on = [aws_s3_bucket_ownership_controls.arch_cfe]
+
+  bucket = aws_s3_bucket.arch_cfe.id
+  acl    = "private"
 }
 
 # Create IAM for CFE (Cloud Failover Extension)

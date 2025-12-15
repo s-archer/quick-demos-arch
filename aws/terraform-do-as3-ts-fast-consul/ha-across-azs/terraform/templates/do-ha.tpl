@@ -63,12 +63,6 @@
             "allowService": "default",
             "trafficGroup": "traffic-group-local-only"
         },
-        "localRoute": {
-            "class": "Route",
-            "network": ${peer_net},
-            "gw": ${internal_gw},
-            "localOnly": true
-        },
         "configsync": {
             "class": "ConfigSync",
             "configsyncIp": "/Common/internal-self/address"

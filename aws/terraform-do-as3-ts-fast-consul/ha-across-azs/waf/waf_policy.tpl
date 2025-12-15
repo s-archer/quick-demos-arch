@@ -48,7 +48,7 @@
               "servicePort": 80,
               "addressDiscovery": "consul",
               "updateInterval": 10,
-              "uri": "http://10.0.0.100:8500/v1/catalog/service/nginx"
+              "uri": "http://10.0.2.100:8500/v1/catalog/service/nginx"
             }
           ]
         }

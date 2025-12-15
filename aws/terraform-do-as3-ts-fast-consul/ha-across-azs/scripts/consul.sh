@@ -4,7 +4,7 @@
 sudo apt-get install unzip
 
 #Download Consul
-CONSUL_VERSION="1.7.2"
+CONSUL_VERSION="1.21.5"
 curl --silent --remote-name https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
 
 #Install Consul
@@ -22,7 +22,7 @@ sudo chown --recursive consul:consul /opt/consul
 #Create Systemd Config
 sudo cat << EOF > /etc/systemd/system/consul.service
 [Unit]
-Description="HashiCorp Consul - A service mesh solution"
+Description="HashiCorp Consul Server"
 Documentation=https://www.consul.io/
 Requires=network-online.target
 After=network-online.target

@@ -1,11 +1,11 @@
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> v2.0"
+  source = "terraform-aws-modules/vpc/aws"
+  # version = "~> v2.0"
 
   name = "${var.prefix}-f5-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["${var.region}a","${var.region}b"]
+  azs = ["${var.region}a", "${var.region}b"]
 
   # 10.0.0.0/24 = f5-1 Mgmt
   # 10.0.10.0/24 = f5-2 Mgmt
@@ -15,9 +15,9 @@ module "vpc" {
 
   # 10.0.2.0/24 = f5-1 Internal
   # 10.0.12.0/24 = f5-2 Internal
-  
+
   # note that because we have declared 2 AZs, the subnets are allocated in order into AZ1,AZ2,AZ1,AZ2...ETC
-  public_subnets  = ["10.0.0.0/24","10.0.10.0/24","10.0.1.0/24","10.0.11.0/24"]
+  public_subnets  = ["10.0.0.0/24", "10.0.10.0/24", "10.0.1.0/24", "10.0.11.0/24"]
   private_subnets = ["10.0.2.0/24", "10.0.12.0/24"]
 
   # Need the NAT gateway to allow BIG-IP outbound to download onboarding artifacts.
@@ -40,14 +40,14 @@ resource "aws_security_group" "f5" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    ingress {
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    ingress {
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -80,7 +80,7 @@ resource "aws_security_group" "f5_internal" {
   name   = "${var.prefix}-f5_internal"
   vpc_id = module.vpc.vpc_id
 
-    ingress {
+  ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -107,14 +107,14 @@ resource "aws_security_group" "nginx" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
-    ingress {
+  ingress {
     from_port   = 8
     to_port     = 0
     protocol    = "icmp"
     cidr_blocks = ["10.0.0.0/16"]
   }
 
-    ingress {
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"

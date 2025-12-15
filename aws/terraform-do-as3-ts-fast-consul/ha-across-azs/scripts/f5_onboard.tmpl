@@ -54,7 +54,7 @@ echo "WORKAROUND TO INCREASE TOOLCHAIN MEMORY"
 date
 # Modify restjavad memory
 echo "Increasing extramb for restjavad"
-tmsh modify sys db provision.extramb value 1000
+tmsh modify sys db provision.extramb value 1024
 tmsh modify sys db restjavad.useextramb value true
 tmsh save sys config
 tmsh restart sys service restjavad
