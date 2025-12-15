@@ -86,44 +86,44 @@ resource "azurerm_network_interface" "int_nic" {
   }
 }
 
-data "template_file" "do" {
-  template = file("./templates/do.tpl")
-}
+# data "template_file" "do" {
+#   template = file("./templates/do.tpl")
+# }
 
-data "template_file" "as3" {
-  template = file("./templates/as3.tpl")
-}
+# data "template_file" "as3" {
+#   template = file("./templates/as3.tpl")
+# }
 
-data "template_file" "cfe" {
-  template = file("./templates/cfe.tpl")
-}
+# data "template_file" "cfe" {
+#   template = file("./templates/cfe.tpl")
+# }
 
-data "template_file" "f5_init" {
-  template = file("./templates/user_data_json.tpl")
-  count    = 2
-  vars = {
-    hostname         = "${var.hostname-f5}-${count.index}.f5demo.com",
-    admin_pass       = random_string.password.result,
-    external_ip      = "${azurerm_network_interface.ext_nic[count.index].private_ip_addresses[0]}/24",
-    internal_ip      = "${azurerm_network_interface.int_nic[count.index].private_ip_address}/24",
-    internal_gw      = cidrhost(data.azurerm_subnet.internal.address_prefixes[0], 1),
-    mgmt_gw          = cidrhost(data.azurerm_subnet.mgmt.address_prefixes[0], 1),
-    vs1_ip           = "10.99.0.1",
-    bigip1           = azurerm_network_interface.int_nic[0].private_ip_address,
-    bigip2           = azurerm_network_interface.int_nic[1].private_ip_address,
-    do_declaration   = data.template_file.do.rendered,
-    as3_declaration  = data.template_file.as3.rendered,
-    resource_group   = azurerm_resource_group.rg.name,
-    subscription_id  = var.subscription_id,
-    directory_id     = var.tenant_id,
-    application_id   = var.client_id,
-    api_access_key   = var.client_secret
-  }
-}
+# data "template_file" "f5_init" {
+#   template = file("./templates/user_data_json.tpl")
+#   count    = 2
+#   vars = {
+#     hostname         = "${var.hostname-f5}-${count.index}.f5demo.com",
+#     admin_pass       = random_string.password.result,
+#     external_ip      = "${azurerm_network_interface.ext_nic[count.index].private_ip_addresses[0]}/24",
+#     internal_ip      = "${azurerm_network_interface.int_nic[count.index].private_ip_address}/24",
+#     internal_gw      = cidrhost(data.azurerm_subnet.internal.address_prefixes[0], 1),
+#     mgmt_gw          = cidrhost(data.azurerm_subnet.mgmt.address_prefixes[0], 1),
+#     vs1_ip           = "10.99.0.1",
+#     bigip1           = azurerm_network_interface.int_nic[0].private_ip_address,
+#     bigip2           = azurerm_network_interface.int_nic[1].private_ip_address,
+#     do_declaration   = templatefile("./templates/do.tpl"),
+#     as3_declaration  = templatefile("./templates/as3.tpl"),
+#     resource_group   = azurerm_resource_group.rg.name,
+#     subscription_id  = var.subscription_id,
+#     directory_id     = var.tenant_id,
+#     application_id   = var.client_id,
+#     api_access_key   = var.client_secret
+#   }
+# }
 
 resource "local_file" "test_user_data_debug" {
   count       = 2
-  content     = templatefile("./templates/user_data_json.tpl", {
+  content     = templatefile("${path.module}/templates/user_data_json.tpl", {
     hostname         = "${var.hostname-f5}-${count.index}.f5demo.com",
     admin_pass       = random_string.password.result,
     external_ip      = "${azurerm_network_interface.ext_nic[count.index].private_ip_addresses[0]}/24",
@@ -133,13 +133,14 @@ resource "local_file" "test_user_data_debug" {
     vs1_ip           = "10.99.0.1",
     bigip1           = azurerm_network_interface.int_nic[0].private_ip_address,
     bigip2           = azurerm_network_interface.int_nic[1].private_ip_address,
-    do_declaration   = data.template_file.do.rendered,
-    as3_declaration  = data.template_file.as3.rendered,
+    do_declaration   = templatefile("${path.module}/templates/do.tpl", {}),
+    as3_declaration  = templatefile("${path.module}/templates/as3.tpl", {}),
     resource_group   = azurerm_resource_group.rg.name,
     subscription_id  = var.subscription_id,
     directory_id     = var.tenant_id,
     application_id   = var.client_id,
     api_access_key   = var.client_secret
+    cfe_tag          = var.cfe_tag
   })
   filename = "${path.module}/user_data_debug_${count.index}.json"
 }
@@ -195,9 +196,28 @@ resource "azurerm_virtual_machine" "f5vm" {
     computer_name  = "${var.prefix}-bigip-${count.index}"
     admin_username = var.f5_username
     admin_password = random_string.password.result
-    custom_data    = base64encode(data.template_file.f5_init[count.index].rendered)
     #custom_data    = data.template_file.f5_init[count.index].rendered
-    
+    #custom_data    = base64encode(data.template_file.f5_init[count.index].rendered)
+    custom_data    = base64encode(templatefile("${path.module}/templates/user_data_json.tpl", {
+      hostname         = "${var.hostname-f5}-${count.index}.f5demo.com",
+      admin_pass       = random_string.password.result,
+      external_ip      = "${azurerm_network_interface.ext_nic[count.index].private_ip_addresses[0]}/24",
+      internal_ip      = "${azurerm_network_interface.int_nic[count.index].private_ip_address}/24",
+      internal_gw      = cidrhost(data.azurerm_subnet.external.address_prefixes[0], 1),
+      mgmt_gw          = cidrhost(data.azurerm_subnet.mgmt.address_prefixes[0], 1),
+      vs1_ip           = "10.99.0.1",
+      bigip1           = azurerm_network_interface.int_nic[0].private_ip_address,
+      bigip2           = azurerm_network_interface.int_nic[1].private_ip_address,
+      do_declaration   = templatefile("${path.module}/templates/do.tpl", {}),
+      as3_declaration  = templatefile("${path.module}/templates/as3.tpl", {}),
+      resource_group   = azurerm_resource_group.rg.name,
+      subscription_id  = var.subscription_id,
+      directory_id     = var.tenant_id,
+      application_id   = var.client_id,
+      api_access_key   = var.client_secret
+      cfe_tag          = var.cfe_tag
+    }))
+
   }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -215,19 +235,19 @@ resource "azurerm_virtual_machine" "f5vm" {
   depends_on = [azurerm_network_interface_security_group_association.mgmt_security, azurerm_network_interface_security_group_association.int_security, azurerm_network_interface_security_group_association.ext_security]
 }
 
-resource "azurerm_virtual_machine_extension" "vmext0" {
-  count                 = 2
-  name                  = "${var.prefix}-vmext0"
-  virtual_machine_id    = azurerm_virtual_machine.f5vm[count.index].id
-  publisher             = "Microsoft.Azure.Extensions"
-  type                  = "CustomScript"
-  type_handler_version  = "2.0"
-  protected_settings    = <<PROT
-    {
-      "script": "${base64encode(data.template_file.f5_init[count.index].rendered)}"
-    }
-  PROT
-}
+# resource "azurerm_virtual_machine_extension" "vmext0" {
+#   count                 = 2
+#   name                  = "${var.prefix}-vmext0"
+#   virtual_machine_id    = azurerm_virtual_machine.f5vm[count.index].id
+#   publisher             = "Microsoft.Azure.Extensions"
+#   type                  = "CustomScript"
+#   type_handler_version  = "2.0"
+#   protected_settings    = <<PROT
+#     {
+#       "script": "${base64encode(data.template_file.f5_init[count.index].rendered)}"
+#     }
+#   PROT
+# }
 
 # resource "azurerm_virtual_machine_extension" "vmext1" {
 

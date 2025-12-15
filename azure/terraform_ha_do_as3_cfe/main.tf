@@ -7,9 +7,6 @@ provider azurerm {
   tenant_id       = var.tenant_id
 }
 
-data "http" "myip" {
-  url = "http://ipv4bot.whatismyipaddress.com"
-}
 
 resource "random_string" "password" {
   length      = 10

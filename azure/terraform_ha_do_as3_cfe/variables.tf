@@ -44,12 +44,12 @@ variable f5_instance_type {
 
 variable f5_image_name {
   type    = string
-  default = "f5-bigip-virtual-edition-200m-best-hourly"
+  default = "f5-big-best-plus-hourly-25mbps"
 }
 
 variable f5_version {
   type    = string
-  default = "14.1.206000"
+  default = "17.1.1040100"
 }
 
 variable f5_product_name {
@@ -70,6 +70,11 @@ variable "prefix" {
 variable "uk_se_name" {
   description = "UK SE name tag"
   default     = "arch"
+}
+
+variable "cfe_tag" {
+  description = "Failover tag"
+  default     = "archfailover"
 }
 
 variable "hostname-f5" { 

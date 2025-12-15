@@ -76,7 +76,7 @@ resource "azurerm_route_table" "azurefw" {
   }
 
   tags = {
-    f5_cloud_failover_label = "mydeployment"
+    f5_cloud_failover_label = var.cfe_tag
     f5_self_ips             = "${azurerm_network_interface.ext_nic[0].private_ip_address},${azurerm_network_interface.ext_nic[1].private_ip_address}"
     environment             = "Production"
   }
@@ -109,6 +109,6 @@ resource "azurerm_storage_account" "cfestorage" {
   account_replication_type = "LRS"
 
   tags = {
-    f5_cloud_failover_label = "staging"
+    f5_cloud_failover_label = "archfailover"
   }
 }

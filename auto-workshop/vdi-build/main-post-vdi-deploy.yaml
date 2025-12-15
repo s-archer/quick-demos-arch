@@ -8,7 +8,8 @@
   gather_facts: no
   remote_user: ubuntu
   become: yes
-
+  vars:
+    ansible_python_interpreter: /usr/bin/python
 
   tasks:
 
@@ -65,7 +66,7 @@
             - title: VDI PASSWORD
               value: "{{ id }}\r\n"
               short: false
-    loop: "{{ groups['launched_ec2s'] }}"
+    #loop: "{{ groups['launched_ec2s'] }}"
 
 
 #------------------------------------------------------------------------------

@@ -97,36 +97,37 @@
     index_var: index
 
 
+# Looks like this bug is now fixed.
 # There is an Ansible bug with this task, so we have to allocate new EIPs and then, separately
 # associate with the secondary IPs, in the next two blocks.
-#- name: ALLOCATE NEW EIPS AND ASSOCIATE WITH ENI SECONDARY IPS
-#  ec2_eip:
-#    device_id: "{{ aws_pub_eni_id }}"
-#    private_ip_address: "{{ item.private_ip_address }}"
-#    in_vpc: yes
-#    allow_reassociation: yes
-#    release_on_disassociation: yes
-#  loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
-
-
-- name: ALLOCATE NEW EIP FOR EACH PRIVATE IP ON THE ENI
+- name: ALLOCATE NEW EIPS AND ASSOCIATE WITH ENI SECONDARY IPS
   ec2_eip:
-    state: 'present'
-    release_on_disassociation: yes
-  register: eip2
-  loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
-
-
-- name: ASSOCIATE EIPS TO ENIS
-  ec2_eip:
-    public_ip: "{{ eip2.results[index].public_ip }}"
     device_id: "{{ aws_pub_eni_id }}"
     private_ip_address: "{{ item.private_ip_address }}"
-    in_vpc: true 
+    in_vpc: yes
+    allow_reassociation: yes
     release_on_disassociation: yes
   loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
-  loop_control:
-    index_var: index
+
+
+# - name: ALLOCATE NEW EIP FOR EACH PRIVATE IP ON THE ENI
+#   ec2_eip:
+#     state: 'present'
+#     release_on_disassociation: yes
+#   register: eip2
+#   loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
+
+
+# - name: ASSOCIATE EIPS TO ENIS
+#   ec2_eip:
+#     public_ip: "{{ eip2.results[index].public_ip }}"
+#     device_id: "{{ aws_pub_eni_id }}"
+#     private_ip_address: "{{ item.private_ip_address }}"
+#     in_vpc: true 
+#     release_on_disassociation: yes
+#   loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
+#   loop_control:
+#     index_var: index
 
 
 - name: GET UPDATED ENI FACTS
@@ -136,12 +137,12 @@
   register: ec2_eni_facts
 
 
-- name: OUTPUT ALL PUBLIC AND PRIVATE IPS ASSOCIATED WITH THE ENI
-  debug:
-    msg: "Private IP {{ index }}: {{ item.private_ip_address }} -- Public IP: {{ item.association.public_ip }}"
-  loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
-  loop_control:
-    index_var: index
+# - name: OUTPUT ALL PUBLIC AND PRIVATE IPS ASSOCIATED WITH THE ENI
+#   debug:
+#     msg: "Private IP {{ index }}: {{ item.private_ip_address }} -- Public IP: {{ item }}"
+#   loop: "{{ ec2_eni_facts.network_interfaces[0].private_ip_addresses }}"
+#   loop_control:
+#     index_var: index
 
 
 - name: GET ALL PUBLIC IPS (EIPS)

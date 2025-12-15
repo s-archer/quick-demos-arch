@@ -78,7 +78,13 @@ cat << 'EOF' > /config/cloud/runtime-init-conf.yaml
             "name": "API_ACCESS_KEY",
             "type": "static",
             "value": "${api_access_key}"
+        },
+        {
+            "name": "CFE_TAG",
+            "type": "static",
+            "value": "${cfe_tag}"
         }
+        
     ],
     "extension_packages": {
         "install_operations": [

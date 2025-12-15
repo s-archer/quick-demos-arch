@@ -9,8 +9,9 @@
   gather_facts: no
 
   environment:
-    AWS_ACCESS_KEY_ID: "{{ ec2_access_key }}"
-    AWS_SECRET_ACCESS_KEY: "{{ ec2_secret_key }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+    AWS_SESSION_TOKEN: "{{ aws_session_token }}"
     AWS_REGION: "{{ aws_region }}"
     
 
@@ -25,7 +26,7 @@
   #  ec2_secret_key: "--your-secret-here--"
   #
   vars_files:
-    - ../../../creds/aws_creds.yaml
+    - ../../../creds/creds.yaml
     - ../../../creds/big_creds.yaml
     - ./vars.yaml
 
@@ -39,53 +40,53 @@
 
   tasks:
 
-  - name: GET VDI FACTS
-    ec2_instance_facts:
-      filters:
-        "tag:type": ubuntu-workstation
-        "tag:Name": "autows-vdi-{{uk_se_name}}"
-        "tag:UK-SE": "{{ uk_se_name }}"
-    register: vdi_facts
+  # - name: GET VDI info
+  #   ec2_instance_info:
+  #     filters:
+  #       "tag:type": ubuntu-workstation
+  #       "tag:Name": "autows-vdi-{{uk_se_name}}"
+  #       "tag:UK-SE": "{{ uk_se_name }}"
+  #   register: vdi_info
 
 
-  - name: OUTPUT VDI INSTANCE IDS
-    debug: 
-      msg: "{{ vdi_facts }} | to_nice_json"
+  # - name: OUTPUT VDI INSTANCE IDS
+  #   debug: 
+  #     msg: "{{ vdi_info }} | to_nice_json"
 
 
-  - name: DESTROY VDIS
-    ec2:
-      instance_ids: "{{ item.instance_id }}"
-      state: absent
-    loop: "{{ vdi_facts.instances }}"
+  # - name: DESTROY VDIS
+  #   ec2:
+  #     instance_ids: "{{ item.instance_id }}"
+  #     state: absent
+  #   loop: "{{ vdi_info.instances }}"
 
 
   - name: GET VPC ID USING TAGS DEFINED DURING AUTOMATED BUILD
-    ec2_vpc_net_facts:
+    ec2_vpc_net_info:
       region: "{{ aws_region }}"
       filters:
         "tag:stack": "{{ stack_name }}"
         "tag:UK-SE": "{{ uk_se_name }}"
         "tag:automated": "{{ automation_tool }}"
-    register: vpc_facts
+    register: vpc_info
     ignore_errors: True
 
 
   - name: OUTPUT VPC ID
     debug:
-      msg: "{{ vpc_facts }}"
+      msg: "{{ vpc_info }}"
     ignore_errors: True
 
 
   - name: OUTPUT VPC ID
     debug:
-      msg: "Identified VPC: {{ vpc_facts.vpcs[0].vpc_id }}. This will be deleted."
+      msg: "Identified VPC: {{ vpc_info.vpcs[0].vpc_id }}. This will be deleted."
     ignore_errors: True
 
 
   - name: DELETE INTERNET GATEWAY
     ec2_vpc_igw:
-      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
       state: absent
       tags:
         automated: "{{ automation_tool }}"
@@ -96,7 +97,7 @@
 
   - name: DELETE ROUTE TABLE FOR PUBLIC SUBNETS
     ec2_vpc_route_table:
-      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
       state: absent
       tags:
         automated: "{{ automation_tool }}"
@@ -109,13 +110,13 @@
       state: absent
       name: "{{ sg_name }}"
       description: "{{ sg_name }} security group"
-      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
       region: "{{ aws_region }}"
 
 
   - name: DELETE VPC SUBNETS
     ec2_vpc_subnet:
-      vpc_id: "{{ vpc_facts.vpcs[0].vpc_id }}"
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
       cidr: "{{ item.cidr }}"
       az: "{{ item.az }}"
       tags:
